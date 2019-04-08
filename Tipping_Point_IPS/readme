@@ -1,0 +1,12 @@
+########################Weekly Process in Tipping Point SMS#########################################
+#One Time:
+#1)	SMS / Profiles / Reputation Database / Tag Categories (Tab) / New
+#2)	Name: “SANS Top IPs Blacklist”, Type: “Yes/No”, ok.
+#3)	Profiles / Inspection Profiles / <select your perimeter profile> / Reputation / Geo
+#4)	New Reputation / Name: “SANS Blacklist”, State: Enabled, Action Set: Block / Notify. In Entry Selection Criteria, make sure “SANS Top IPs Blacklist” is the only entry check, and select Tag value is Yes
+
+#Weekly IPS Rhythm (instead of using a TAXII server):
+#1)	Run the script which outputs a CSV file called “SANSTopIPs.csv”
+#2)	SMS / Profiles / Reputation Database / User Entries / Import / SANSTopIPs.csv
+#3)	Click through defaults
+####################################################################################################
