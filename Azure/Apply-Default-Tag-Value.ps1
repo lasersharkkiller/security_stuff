@@ -1,0 +1,3 @@
+Register-AzureRmResourceProvider -ProviderNamespace 'Microsoft.PolicyInsights'
+$definition = New-AzureRmPolicyDefinition -Name "apply-default-tag-value" -DisplayName "Apply tag and its default value" -description "Applies a required tag and its default value if it is not specified by the user." -Policy 'https://raw.githubusercontent.com/Azure/azure-policy/master/samples/built-in-policy/apply-default-tag-value/azurepolicy.rules.json' -Parameter 'https://raw.githubusercontent.com/Azure/azure-policy/master/samples/built-in-policy/apply-default-tag-value/azurepolicy.parameters.json' -Mode All
+$assignment = New-AzureRMPolicyAssignment -Name "Apply-Tags" -Scope "/subscriptions/d3f555da-c9a6-423b-bc57-67fe3d580a22" -tagName "Project" -PolicyDefinition $definition
