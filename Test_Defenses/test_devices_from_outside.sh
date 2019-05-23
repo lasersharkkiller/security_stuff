@@ -208,10 +208,22 @@ wget http://nscorp.com/index.php?target=db_sql.php%253f/../../../../../../window
 wget 'http://nscorp.com/%25%7b(%23dm%3d%40ognl.OgnlContext%40DEFAULT_MEMBER_ACCESS).(%23_memberAccess%3f(%23_memberAccess%3d%23dm)%3a((%23container%3d%23context%5b%27com.opensymphony.xwork2.ActionContext.container%27%5d).(%23ognlUtil%3d%23container.getInstance(%40com.opensymphony.xwork2.ognl.OgnlUtil%40class)).(%23ognlUtil.getExcludedPackageNames().clear()).(%23ognlUtil.getExcludedClasses().clear()).(%23context.setMemberAccess(%23dm)))).(%23res%3d%40org.apache.struts2.ServletActionContext%40getResponse()).(%23res.addHeader(%27eresult%27%2c%27struts2_security_check%27))%7d/' -t 1 --timeout=5 --spider --referer=freemalware.com --user-agent='Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)'
 
 
+###Snort & Converted Snort Rules for Tipping Point IPS###
+#User-Agent Anomolous Non-Business Traffic
+wget http://lorenanorton.com --timeout=5 --user-agent='Baidu Test'
+wget http://lorenanorton.com --timeout=5 --user-agent='WPScan'
+wget http://lorenanorton.com --timeout=5 --user-agent='Synapse'
+wget http://lorenanorton.com --timeout=5 --user-agent='sqlmap'
+wget http://lorenanorton.com --timeout=5 --user-agent='Python'
+wget http://lorenanorton.com --timeout=5 --user-agent='PycURL'
+wget http://lorenanorton.com --timeout=5 --user-agent='Paros'
+wget http://lorenanorton.com --timeout=5 --user-agent='OpenVAS'
+wget http://lorenanorton.com --timeout=5 --user-agent='Nmap'
+wget http://lorenanorton.com --timeout=5 --user-agent='Nikto'
+wget http://lorenanorton.com --timeout=5 --user-agent='Kazehakase'
 
 
-
-
+###FireEye###
 #FireEye (Alert): Ransomware
 wget 'https://www.iuqerfsodp9ifjaposdfjhgosurijfaewrwergwea.com' -t 1 --timeout=5 --spider --referer=freemalware.com --user-agent='Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)'
 
@@ -287,7 +299,7 @@ wget http://robwassotdint.ru -t 1 --timeout=5 --spider --referer=freemalware.com
 #Trickbot download
 wget http://95.110.193.132/ser0410.bin -t 1 --timeout=5 --spider --referer=freemalware.com --user-agent='Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)'
 
-
+###StealthWatch###
 #StealthWatch Sites to trip cognitive threat analytics
 
 wget http://www.examplemalwaredomain.com -t 1 --timeout=5 --spider --referer=freemalware.com --user-agent='Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)'
