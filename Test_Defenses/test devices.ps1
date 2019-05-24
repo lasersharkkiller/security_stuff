@@ -244,6 +244,9 @@ wget http://lorenanorton.com -TimeoutSec 5 -UserAgent "Kazehakase"
 #FireEye (Alert): Ransomware
 wget "https://www.iuqerfsodp9ifjaposdfjhgosurijfaewrwergwea.com" -TimeoutSec 5 -UserAgent "Ransomware (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 
+#FireEye APT Attack Alert
+wget "http://99999.1.c.canihazyour.host" -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
+
 #FireEye (Alert): Should trigger FireEye, but I had suppressed the rule after it was a false positive
 wget download.imgburn.com/SetupImgBurn_2.5.8.0.exe -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 
