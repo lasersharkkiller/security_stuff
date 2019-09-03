@@ -6,6 +6,7 @@
 # This script will send a request for S1 to upload blocked files to S1,
 # Then it will pull down those blocked files. This script is meant to be
 # run on a scheduled task every hour OFF NETWORK.
+# Note - if you are running on a machine with S1 run it out of the exemption folder
  
 Add-Type -AssemblyName System.Web
  
