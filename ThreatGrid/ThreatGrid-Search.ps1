@@ -1,3 +1,10 @@
+##### Status: In Progress #####
+#
+# Script Author: Ian Norton
+# Creation Date: 20190903
+#
+# This script provides various Search options against ThreatGrid
+
 ###ThreatGrid API key
 $key = "3m9h9mr5fi0v925k1pbdnv6l52"
 
