@@ -27,7 +27,7 @@ $api_query = "https://panacea.threatgrid.com/api/v2/search/submissions?q=$submis
 $agent_response = Invoke-RestMethod -Uri $api_query -Headers $api_headers -Method Get
 $total = $agent_response.data.total
 
-###Output the Threat Score and SHA256 from your organization
+###Output the Threat Score and SHA256
 for ($n=0; $n -lt $total;$n++){
     if ($agent_response.data[0].items[$n].item.analysis.threat_score){
         Write-Host $n
