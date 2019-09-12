@@ -7,7 +7,7 @@
 # Script to query specifically (note the difference between 04 & 05 is the term=path)
 
 ###ThreatGrid API key
-$key = "3m9h9mr5fi0v925k1pbdnv6l52"
+$key = "REPLACE-YOUR-KEY-HERE"
 
 ###API header variable remains constant for all options
 $api_headers = @{
