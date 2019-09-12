@@ -73,11 +73,7 @@ $currentfile = "C:\bits\2019 Salaries.xlsx"
 
 		$Uri = "https://panacea.threatgrid.com/api/v2/samples"
 		try {
-			
-            # Update the case
-            #$caseUpdate = "Uploading the sample ($fileName) to ThreatGrid. Please allow up to 10 minutes for the analysis to complete..."
-
-            # Call ThreatGRID
+		# Call ThreatGRID
 			$Response = Invoke-RestMethod -Uri $Uri -Headers $api_headers -method POST -Body $Body -ContentType $ContentType 
 			return $Response.data
 
