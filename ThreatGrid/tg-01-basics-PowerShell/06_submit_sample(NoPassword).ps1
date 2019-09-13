@@ -4,10 +4,12 @@
 # Creation Date: 20190910
 #
 # PowerShell converted scripts from https://github.com/CiscoSecurity/
-# Script to submit a file with no password. Replace $key $currentfile
+# Script to submit a file with no password. Replace $key $currentfile and $vm
 
 ###ThreatGrid API key
-$key = "REPLACE-YOUR-KEY-HERE"
+$key = "REPLACE-KEY-HERE"
+$vm = "win10"
+$currentfile = "C:\bits\2019 Salaries.xlsx"
 
 ###API header variable
 $api_headers = @{
@@ -19,12 +21,10 @@ $api_headers = @{
 "Accept-Encoding"="gzip, deflate"
 }
 
-
 ###FILE Operation
 
 ###Define the file being submitted
-$currentfile = "C:\bits\2019 Salaries.xlsx"
- 
+
 	    # Read the file contents in as a byte array
 		$fileName = Split-Path $currentfile -leaf
         $FilePath = Split-Path $currentfile -Parent
@@ -40,10 +40,13 @@ $currentfile = "C:\bits\2019 Salaries.xlsx"
 			'Content-Disposition: form-data; name="api_key"',
 			"",
 			$key,
-			"------------MULTIPARTBOUNDARY_`$",
+            "------------MULTIPARTBOUNDARY_`$",
 			'Content-Disposition: form-data; name="filename"',
 			"",
 			$fileName,
+            "------------MULTIPARTBOUNDARY_`$",
+			'Content-Disposition: form-data; name="tags"',
+			"",
 			"LR-SmartResponse",
 			"------------MULTIPARTBOUNDARY_`$",
 			'Content-Disposition: form-data; name="os"',
@@ -73,14 +76,10 @@ $currentfile = "C:\bits\2019 Salaries.xlsx"
 
 		$Uri = "https://panacea.threatgrid.com/api/v2/samples"
 		try {
-		# Call ThreatGRID
+			
+            # Call ThreatGRID
 			$Response = Invoke-RestMethod -Uri $Uri -Headers $api_headers -method POST -Body $Body -ContentType $ContentType 
 			return $Response.data
-
-            $Response.data
-            $sampleId = $Response.data.id
-            
-            #echo "Sample Submitted to ThreatGrid:" 
 		}
 		catch {
 			write-host "Failed to upload" $FileName "to ThreatGrid"
