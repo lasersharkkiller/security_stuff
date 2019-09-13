@@ -7,7 +7,7 @@
 # Script to submit a file with no password. Replace $key $currentfile $vm and $password
 
 ###ThreatGrid API key
-$key = "REPLACE-YOUR-KEY-HERE"
+$key = "REPLACE-KEY-HERE"
 $password = "infected"
 $vm = "win7-x64"
 $currentfile = "C:\bits\2ba14072c68a485d8eb040f8e61347b3-sample.zip"
@@ -23,6 +23,7 @@ $api_headers = @{
 }
 
 ###FILE Operation
+
 	    # Read the file contents in as a byte array
 		$fileName = Split-Path $currentfile -leaf
         $FilePath = Split-Path $currentfile -Parent
