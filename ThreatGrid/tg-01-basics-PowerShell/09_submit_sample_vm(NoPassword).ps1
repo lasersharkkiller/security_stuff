@@ -9,6 +9,7 @@
 ###ThreatGrid API key
 $key = "REPLACE-YOUR-KEY-HERE"
 $vm = "win7-x64"
+$currentfile = "C:\bits\2019 Salaries.xlsx"
 
 ###API header variable
 $api_headers = @{
@@ -20,12 +21,8 @@ $api_headers = @{
 "Accept-Encoding"="gzip, deflate"
 }
 
-
 ###FILE Operation
 
-###Define the file being submitted
-$currentfile = "C:\bits\2019 Salaries.xlsx"
- 
 	    # Read the file contents in as a byte array
 		$fileName = Split-Path $currentfile -leaf
         $FilePath = Split-Path $currentfile -Parent
@@ -85,11 +82,6 @@ $currentfile = "C:\bits\2019 Salaries.xlsx"
             # Call ThreatGRID
 			$Response = Invoke-RestMethod -Uri $Uri -Headers $api_headers -method POST -Body $Body -ContentType $ContentType 
 			return $Response.data
-
-            $Response.data
-            $sampleId = $Response.data.id
-            
-            #echo "Sample Submitted to ThreatGrid:" 
 		}
 		catch {
 			write-host "Failed to upload" $FileName "to ThreatGrid"
