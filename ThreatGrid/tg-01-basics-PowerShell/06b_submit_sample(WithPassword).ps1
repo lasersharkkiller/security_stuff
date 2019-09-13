@@ -9,6 +9,7 @@
 ###ThreatGrid API key
 $key = "REPLACE-YOUR-KEY-HERE"
 $password = "infected"
+$currentfile = "C:\bits\2ba14072c68a485d8eb040f8e61347b3-sample.zip"
 
 ###API header variable
 $api_headers = @{
@@ -20,12 +21,8 @@ $api_headers = @{
 "Accept-Encoding"="gzip, deflate"
 }
 
-
 ###FILE Operation
 
-###Define the file being submitted
-$currentfile = "C:\bits\2ba14072c68a485d8eb040f8e61347b3-sample.zip"
- 
 	    # Read the file contents in as a byte array
 		$fileName = Split-Path $currentfile -leaf
         $FilePath = Split-Path $currentfile -Parent
@@ -81,14 +78,9 @@ $currentfile = "C:\bits\2ba14072c68a485d8eb040f8e61347b3-sample.zip"
 
 		$Uri = "https://panacea.threatgrid.com/api/v2/samples"
 		try {
-		# Call ThreatGRID
+			# Call ThreatGRID
 			$Response = Invoke-RestMethod -Uri $Uri -Headers $api_headers -method POST -Body $Body -ContentType $ContentType 
 			return $Response.data
-
-            $Response.data
-            $sampleId = $Response.data.id
-            
-            #echo "Sample Submitted to ThreatGrid:" 
 		}
 		catch {
 			write-host "Failed to upload" $FileName "to ThreatGrid"
