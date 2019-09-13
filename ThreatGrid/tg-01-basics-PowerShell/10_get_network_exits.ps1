@@ -4,7 +4,7 @@
 # Creation Date: 20190910
 #
 # PowerShell converted scripts from https://github.com/CiscoSecurity/
-# Script to query vms
+# Script to see the different network exit nodes available to ThreatGrid
 
 ###ThreatGrid API key
 $key = "REPLACE-KEY-HERE"
