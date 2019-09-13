@@ -6,7 +6,7 @@
 # This script provides various Search options against ThreatGrid
 
 ###ThreatGrid API key
-$key = "3m9h9mr5fi0v925k1pbdnv6l52"
+$key = "REPLACE-YOUR-KEY-HERE"
 
 ###GUI: Choose Domain, IP, or URL Search
 Add-Type -AssemblyName System.Windows.Forms
