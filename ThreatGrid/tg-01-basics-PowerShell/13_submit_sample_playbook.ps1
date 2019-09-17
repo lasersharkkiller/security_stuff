@@ -7,7 +7,7 @@
 # Script to submit a file, no password, and specify playbook. Replace $key $currentfile and $playbook
 
 ###ThreatGrid API key, set playbook
-$key = "3m9h9mr5fi0v925k1pbdnv6l52"
+$key = "REPLACE-KEY-HERE"
 $playbook = "default"
 $currentfile = "C:\bits\2019 Salaries.xlsx"
 
