@@ -94,7 +94,7 @@ foreach ($threatdate in $threat_response.data.createdAt){
             ids = "$tmptid"
         }
         data = @{
-            password = "INFECTED123!"
+            password = "infected"
         }
     } | ConvertTo-Json -Depth 3
       
