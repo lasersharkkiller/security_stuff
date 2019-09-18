@@ -1,12 +1,14 @@
-##### Status: In Progress #####
+##### Status: Complete #####
 #
 # Script Author: Ian Norton
 # Creation Date: 20190726
 #
 # This script will send a request for S1 to upload blocked files to S1,
 # Then it will pull down those blocked files. This script is meant to be
-# run on a scheduled task every hour OFF NETWORK.
-# Note - if you are running on a machine with S1 run it out of the exemption folder
+# run on a scheduled task OFF NETWORK. Note $threat_file_available has limit in url
+# Change variables as needed: $cur_time.AddHours(-24); $api_Token; $our_site; $To/$From
+# Also make sure c:\scripts exists if you log errors to $txt_file
+# You may need to adjust the sleep period before downloading threat files (Start-Sleep...)
  
 Add-Type -AssemblyName System.Web
  
@@ -15,13 +17,13 @@ Add-Type -AssemblyName System.Web
 #####################
 #### Getting Time Range #####
 $cur_time = Get-Date
-$time_to_look_from = $cur_time.AddHours(-5) #Set the number of hours back for query. If on cron job how many hours between runs.
+$time_to_look_from = $cur_time.AddHours(-24) #Set the number of hours back for query. If on cron job how many hours between runs.
 $zulu_time = Get-Date $time_to_look_from.ToUniversalTime().ToString() -Format "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'"
 $encoded_time = [System.Web.HttpUtility]::UrlEncode($zulu_time)
  
 #### API Related ####
-$api_Token = "INSERTYOURAPITOKENHERE"
-$our_site = "INSERTYOURSITEHERE"
+$api_Token = "INSERT-YOUR-TOKEN-HERE"
+$our_site = "usea1-nscorp"
 $threat_data = "https://$our_site.sentinelone.net/web/api/v2.0/threats?limit=100&createdAt__gte=$encoded_time"
 $fetch_data = "https://$our_site.sentinelone.net/web/api/v2.0/threats/fetch-file"
 $threat_file_available = "https://$our_site.sentinelone.net/web/api/v2.0/activities?includeHidden=false&limit=100&activityTypes=86&createdAt__gte=$encoded_time"
@@ -66,8 +68,8 @@ catch {
         Write-Host "Error Title:" $err_object.errors.title
         $err_object.errors.title | Out-File -FilePath $txt_file
         ### SEND EMAIL WITH ERROR INFO ###
-        #$To = ("ian.norton@nscorp.com,Muhammad.Varachhia@nscorp.com")
-        #$From = "admin@epo.nscorp.com" #origination account for status emails
+        #$To = ("admin@company.com")
+        #$From = "admin@company.com" #origination account for status emails
         #$SMTPServer = "mailhub.nscorp.com"; #system to process status email
         #$subject = "SentinelOne - Pull Malware Error"
         #$body="Error Title: " + $err_object.errors.title + "`n`n"
@@ -126,8 +128,8 @@ catch {
     $err_object.errors.title | Out-File -FilePath $txt_file
  
     ### SEND EMAIL WITH ERROR INFO ###
-    #$To = ("ian.norton@nscorp.com,Muhammad.Varachhia@nscorp.com")
-    #$From = "admin@epo.nscorp.com" #origination account for status emails
+    #$To = ("admin@company.com")
+    #$From = "admin@company.com" #origination account for status emails
     #$SMTPServer = "mailhub.nscorp.com"; #system to process status email
     #$subject = "SentinelOne - Pull Malware Error"
     #$body="Error Title: " + $err_object.errors.title + "`n`n"
@@ -137,6 +139,7 @@ catch {
     } #end catch
  
 #### BUILD LIST OF FILES FROM RESPONSE ####
+Start-Sleep -Seconds 600 #First wait 10 minutes
 $n=0
 foreach ($threatdate in $threat_files_avilable_response.data.createdAt){
     Write-Host "Data to Download"
@@ -148,7 +151,6 @@ foreach ($threatdate in $threat_files_avilable_response.data.createdAt){
     $threat_file_download = "https://$our_site.sentinelone.net/web/api/v2.0" + $threat_files_avilable_response.data.data.filePath[$n]
  
     Write-Host $threat_file_download `n
-     
     try {
         Invoke-WebRequest -Uri  $threat_file_download -Headers $api_headers -Method GET -OutFile $filename
     } #end try
