@@ -24,7 +24,7 @@ $encoded_time = [System.Web.HttpUtility]::UrlEncode($zulu_time)
  
 #### API Related ####
 $api_Token = "INSERT-YOUR-TOKEN-HERE"
-$our_site = "usea1-nscorp"
+$our_site = "INSERT-YOUR-SITE-HERE"
 $threat_data = "https://$our_site.sentinelone.net/web/api/v2.0/threats?limit=100&createdAt__gte=$encoded_time"
 $fetch_data = "https://$our_site.sentinelone.net/web/api/v2.0/threats/fetch-file"
 $threat_file_available = "https://$our_site.sentinelone.net/web/api/v2.0/activities?includeHidden=false&limit=100&activityTypes=86&createdAt__gte=$encoded_time"
@@ -94,7 +94,7 @@ foreach ($threatdate in $threat_response.data.createdAt){
             ids = "$tmptid"
         }
         data = @{
-            password = "infected"
+            password = "INFECTEDfiles"
         }
     } | ConvertTo-Json -Depth 3
       
@@ -167,6 +167,8 @@ foreach ($threatdate in $threat_files_avilable_response.data.createdAt){
 
 
 
+#for unzip/rezip (password issues)
+Import-Module -Name 7Zip4Powershell
 
 
 ###############################
@@ -176,7 +178,7 @@ foreach ($threatdate in $threat_files_avilable_response.data.createdAt){
 ###############################
 
 ###ThreatGrid API key
-$key = "INSERT-YOUR-TOKEN-HERE"
+$key = "INSERT-YOUR-KEY-HERE"
 $password = "infected"
 $files = Get-ChildItem "C:\bits\" -Filter *.zip
 
@@ -196,12 +198,17 @@ $api_headers = @{
 for ($i=0; $i -lt $files.Count; $i++) {
 $currentfile = $files[$i].FullName
     Write-Host $files.Count
-    Write-Host $currentfile
+
+    $newcurrentfile = "S1fileReZipped.zip"
+    Expand-7Zip -ArchiveFileName $currentfile -Password "INFECTED123!" -TargetPath "C:\BITS\temp\tempfolder\"
+    Compress-7Zip -Path C:\BITS\temp\tempfolder\ -ArchiveFileName C:\BITS\temp\$newcurrentfile -Format Zip -Password "infected"
+    $newfile = Get-ChildItem "C:\bits\temp" -Filter *.zip
+    $filetosend = $newfile[0].FullName
 
 	    # Read the file contents in as a byte array
-		$fileName = Split-Path $currentfile -leaf
-        $FilePath = Split-Path $currentfile -Parent
-        $bytes = Get-Content $currentfile -Encoding Byte
+		$fileName = Split-Path $filetosend -leaf
+        $FilePath = Split-Path $filetosend -Parent
+        $bytes = Get-Content $filetosend -Encoding Byte
 		$enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
 		$FileContent = $enc.GetString($bytes)
 
@@ -217,13 +224,13 @@ $currentfile = $files[$i].FullName
 			'Content-Disposition: form-data; name="filename"',
 			"",
 			$fileName,
-			"------------MULTIPARTBOUNDARY_`$",
-			'Content-Disposition: form-data; name="tags"',
-			"",
             "------------MULTIPARTBOUNDARY_`$",
 			'Content-Disposition: form-data; name="password"',
 			"",
 			$password,
+            "------------MULTIPARTBOUNDARY_`$",
+			'Content-Disposition: form-data; name="tags"',
+			"",
 			"LR-SmartResponse",
 			"------------MULTIPARTBOUNDARY_`$",
 			'Content-Disposition: form-data; name="os"',
@@ -255,9 +262,13 @@ $currentfile = $files[$i].FullName
 		try {
 			# Call ThreatGRID
 			$Response = Invoke-RestMethod -Uri $Uri -Headers $api_headers -method POST -Body $Body -ContentType $ContentType
+            Start-Sleep -Seconds 30 #Wait 30 seconds
+
+            Remove-Item $currentfile
+            Remove-Item -Path C:\BITS\temp\ -Recurse
 		}
 		catch {
 			write-host "Failed to upload" $FileName "to ThreatGrid"
-			return $null
+			#return $null
 		}
 }
