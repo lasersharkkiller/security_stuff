@@ -8,7 +8,7 @@
 
 $computerHashes = Get-ChildItem -Force -Recurse C:\ | Get-FileHash -Algorithm SHA256
 #$badHashes = Get-Content –Path C:\Users\Administrator\Documents\bad_hashes.txt
-$VTApiKey = "b3e4e7058af66e877230e5730e92e1185ed6311deddd5a86eb46c0337c6a1bee"
+$VTApiKey = "INSERT-YOUR-KEY-HERE"
 $i=0
 
 foreach($fileHash in $computerHashes){
