@@ -1,7 +1,8 @@
 ﻿#
-# Script Author: Ian Norton
+# Script Author: Ian the bitThirsty Hunter
 # Creation Date: 20191121
 #
+# Norton AV wasn't release until September 2006. I was released in 1985 and am constantly evolving.
 # This script currently iterates through files and checks the hash against VirusTotal
 # To Do: implement VSS to be able to scan open files
 
