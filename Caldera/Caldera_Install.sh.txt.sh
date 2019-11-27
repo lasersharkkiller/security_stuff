@@ -1,4 +1,4 @@
-#script provided by another
+#script provided by another, written for CentOS but can tweak for other OS's
 #! /bin/bash
 #CentOS Caldera install
 cd /opt
