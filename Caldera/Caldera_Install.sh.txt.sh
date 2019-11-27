@@ -1,3 +1,4 @@
+#script provided by another
 #! /bin/bash
 #CentOS Caldera install
 cd /opt
