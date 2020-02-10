@@ -1,0 +1,1 @@
+KnowBe4 modifies the excel file by unzipping, then modifying the xl/drawings/_rels/drawing1.xml.rels and adds an entry for a site, which sends out a little beacon upon opening an excel document (I presume you can do this with other office documents). Neat little trick! The docProps\core.xml holds the email POC, and xl\sharedStrings holds the POC for returning the drive.
