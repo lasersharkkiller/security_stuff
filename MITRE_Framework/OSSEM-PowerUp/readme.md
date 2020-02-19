@@ -1,6 +1,7 @@
 OSSEM Power-Up
 
-Original Source: https://github.com/hxnoyd/ossem-power-up 
+Original Source: https://github.com/hxnoyd/ossem-power-up
+
 In retrospect this one looked a little less intense than Olaf's ATTACKdatamap.
 
 A tool to assess data quality, built on top of the awesome OSSEM project.
