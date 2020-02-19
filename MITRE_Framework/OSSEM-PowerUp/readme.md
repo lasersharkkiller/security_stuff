@@ -82,6 +82,7 @@ Percentage	Score
 51 to 75	3
 76 to 99	4
 100	5
+
 Note: Depending on the use case (SIEM, Threat Hunting, Forensics), you can define different profiles so that you can rate your logs differently.
 
 Consistency
@@ -104,10 +105,6 @@ Power-up is a python script, be sure to pip install -r requirements.txt
 Be sure to have a local copy of OSSEM repository
 Running power-up
 $> python3 powerup.py --help
-  _____ _____ _____ _____ _____    _____ _____ _ _ _ _____ _____     _____ _____ __
- |     |   __|   __|   __|     |  |  _  |     | | | |   __| __  |___|  |  |  _  |  |
- |  |  |__   |__   |   __| | | |  |   __|  |  | | | |   __|    -|___|  |  |   __|__|
- |_____|_____|_____|_____|_|_|_|  |__|  |_____|_____|_____|__|__|   |_____|__|  |__|
 
 usage: powerup.py [-h] [-o OSSEM] [-y OSSEM_YAML] [-p PROFILE] [--excel]
                   [--elastic] [--yaml]
@@ -143,10 +140,6 @@ Note: if no profile file path is specified power-up uses profiles/default.yml by
 
 Exporting to YAML
 $> python3 powerup.py -o ../OSSEM --yaml
-  _____ _____ _____ _____ _____    _____ _____ _ _ _ _____ _____     _____ _____ __
- |     |   __|   __|   __|     |  |  _  |     | | | |   __| __  |___|  |  |  _  |  |
- |  |  |__   |__   |   __| | | |  |   __|  |  | | | |   __|    -|___|  |  |   __|__|
- |_____|_____|_____|_____|_|_|_|  |__|  |_____|_____|_____|__|__|   |_____|__|  |__|
 
 [*] Profile path: profiles/default.yml
 [*] Parsing OSSEM from markdown
@@ -162,10 +155,6 @@ Note 2: power-up does not parse the entire OSSEM objects to YAML, only the data 
 
 Exporting to EXCEL
 $> python3 powerup.py -o ../OSSEM --excel
-  _____ _____ _____ _____ _____    _____ _____ _ _ _ _____ _____     _____ _____ __
- |     |   __|   __|   __|     |  |  _  |     | | | |   __| __  |___|  |  |  _  |  |
- |  |  |__   |__   |   __| | | |  |   __|  |  | | | |   __|    -|___|  |  |   __|__|
- |_____|_____|_____|_____|_|_|_|  |__|  |_____|_____|_____|__|__|   |_____|__|  |__|
 
 [*] Profile path: profiles/default.yml
 [*] Parsing OSSEM from markdown
@@ -175,10 +164,6 @@ When exporting to Excel, power-up will create an eye-candy DDM, with the respect
 
 Exporting to ELASTIC
 $> python3 powerup.py -o ../OSSEM --elastic
-  _____ _____ _____ _____ _____    _____ _____ _ _ _ _____ _____     _____ _____ __
- |     |   __|   __|   __|     |  |  _  |     | | | |   __| __  |___|  |  |  _  |  |
- |  |  |__   |__   |   __| | | |  |   __|  |  | | | |   __|    -|___|  |  |   __|__|
- |_____|_____|_____|_____|_|_|_|  |__|  |_____|_____|_____|__|__|   |_____|__|  |__|
 
 [*] Profile path: profiles/default.yml
 [*] Parsing OSSEM from markdown
@@ -191,10 +176,6 @@ When exporting to Elastic, power-up will store all OSSEM data in elastic. Becaus
 
 Exporting to ATT&CK Navigator
 $> python3 powerup.py -o ../OSSEM --layer
-  _____ _____ _____ _____ _____    _____ _____ _ _ _ _____ _____     _____ _____ __
- |     |   __|   __|   __|     |  |  _  |     | | | |   __| __  |___|  |  |  _  |  |
- |  |  |__   |__   |   __| | | |  |   __|  |  | | | |   __|    -|___|  |  |   __|__|
- |_____|_____|_____|_____|_|_|_|  |__|  |_____|_____|_____|__|__|   |_____|__|  |__|
 
 [*] Profile path: profiles/default.yml
 [*] Parsing OSSEM from markdown
