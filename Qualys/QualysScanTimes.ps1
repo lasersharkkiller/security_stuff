@@ -1,5 +1,6 @@
 # Demo code used in blog post https://stuart-clarkson.blogspot.co.uk/2017/01/getting-qualys-asset-scan-information.html
 # Created by Stuart Clarkson (17 January 2017)
+# Slightly modified to force TLS 1.2 for PS Errors
 # This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
 # https://creativecommons.org/licenses/by-sa/4.0/
 
