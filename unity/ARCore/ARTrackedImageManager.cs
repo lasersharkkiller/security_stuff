@@ -21,10 +21,10 @@ public class ARTrackedMultiple : MonoBehaviour
         {
             switch (trackedImage.referenceImage.name)
             {
-                case "flareon":
+                case "image1":
                     Instantiate(prefab1, trackedImage.transform);
                     break;
-                case "mawile":
+                case "image2":
                     Instantiate(prefab2, trackedImage.transform);
                     break;
                     // note the target manager supports up to 20
