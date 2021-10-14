@@ -2,6 +2,12 @@
 # Script Author: Ian the bitThirsty Hunter
 # Creation Date: 20211014
 #
+#
+# This script currently iterates through running processes, grabs the file path, hashes the file,
+# then runs a check against Echo Trail for each process. Echo Trail notes geared towards IR investigation.
+# Remember that high scores are common Windows files, but this doesn't account for memory injection.
+# To do: beautify results + filter out common/high scores
+
 
 #Define Echo Trail API key & Output file
 $ETkey = "enter-API-key-here"
