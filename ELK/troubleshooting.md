@@ -11,3 +11,4 @@ permission denied, access not found, port already bound
 Logstash broker may not be available - (kafka is broker check that)  
 Check service configuration files  
 Elasticsearch stores its license inside itself  
+Suricata logs not showing up in Kibana index - check Logstash json_keys_under_root
