@@ -44,7 +44,7 @@ sudo mkdir -p /etc/systemd/system/elasticsearch.service.d
 cd /etc/systemd/system/elasticsearch.service.d  
 sudo vi override.conf  
 [Service]
-LimitMemLOCK=infinity
+LimitMEMLOCK=infinity
 ```
 
 ```
