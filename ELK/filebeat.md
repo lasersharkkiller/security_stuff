@@ -17,7 +17,7 @@ enabled: true
 Change /var/log/*.log to /data/suricata/eve.json:
   # Paths that should be crawled and fetched. Glob based paths.
   paths:
-  - /data/suricata/eve.json
+    - /data/suricata/eve.json
   json.keys_under_root: true
 
   fields:
