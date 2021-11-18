@@ -10,7 +10,7 @@ sudo yum install stenographer
 cd /etc/stenographer  
 sudo vi config  
 PacketsDirectory: "/data/stenographer/packets/" (we set up /data as separate partition)  
-IndexDirectory: "/data/stenographer/index"  
+IndexDirectory: "/data/stenographer/index/"  
 Interface: "enp5s0" (applicable monitor interface)  
 Host: dont need to change in our case but can query multiple; docket looks at various stenographers but you could do here  
 *for DiskFreePercentage consider packet flow; keep in mind cleans up every 5 minutes so if you have high throughput and not much storage might need to change it  
