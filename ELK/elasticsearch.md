@@ -10,7 +10,8 @@ sudo yum install elasticsearch kibana
 cd /data  
 ls -la :see we need to make elasticsearch user the owner not root  
 sudo chown -R elasticsearch: elasticsearch/  
-cd /etc/elasticsearch 
+cd /etc
+sudo chown -R elasticsearch: elasticsearch/
 ``` 
 
 ```
