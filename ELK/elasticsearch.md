@@ -15,7 +15,8 @@ sudo chown -R elasticsearch: elasticsearch/
 ``` 
 
 ```
-cat /proc/meminfo | grep Mem :shows you how much RAM running  
+cat /proc/meminfo | grep Mem :shows you how much RAM running 
+cd /etc/elasticsearch
 sudo vi jvm.options   
 In the JVM heap size -Xms4g/Xmx4g we want to set this to half our RAM up to 32Gb  
 *Note on newer installs it says to set in jvm.options.d  
