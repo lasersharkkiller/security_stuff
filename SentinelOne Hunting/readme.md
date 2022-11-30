@@ -4,10 +4,10 @@ In the spirit of keyboardcrunch's hunt, this hunt pack strives to hunt for vario
 
 References so far to build out rules:
 
-ATT&CK TTPs: https://attack.mitre.org/tactics/enterprise/ 
-keyboardcrunch premade rules: https://github.com/keyboardcrunch/SentinelOne-ATTACK-Queries 
-Elastic rules to be converted: https://www.elastic.co/guide/en/security/current/unusual-parent-child-relationship.html 
-S1 hunting examples: https://assets.sentinelone.com/dv/sentinel-one-dv-chea-2?xs=105463 
+ATT&CK TTPs: https://attack.mitre.org/tactics/enterprise/ <br>
+keyboardcrunch premade rules: https://github.com/keyboardcrunch/SentinelOne-ATTACK-Queries <br>
+Elastic rules to be converted: https://www.elastic.co/guide/en/security/current/unusual-parent-child-relationship.html <br>
+S1 hunting examples: https://assets.sentinelone.com/dv/sentinel-one-dv-chea-2?xs=105463 <br>
 
 Good Hunting
 -Starbuck
