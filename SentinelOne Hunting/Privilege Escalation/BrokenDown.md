@@ -16,6 +16,7 @@ Nothing added to baseline
 (RegistryKeyPath ContainsCIS "CurrentVersion\Image File Execution Options" AND RegistryKeyPath ContainsCIS ".exe\Debugger") AND (EventType = "Registry Value Create" OR EventType = "Registry Key Create")
 ```
 
+<br><br>
 ## Can't Get a Good Baseline On
 
 ### Application Shimming: Detects application shimming through sdbinst or registry modification.
