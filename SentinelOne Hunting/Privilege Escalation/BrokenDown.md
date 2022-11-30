@@ -29,6 +29,8 @@ Nothing added to baseline
 
 ### COR Profiler: Detection of unmanaged COR profiler hooking of .NET CLR through registry or process command.
 
+Nothing added to baseline
+
 ```
 (SrcProcCmdScript Contains "COR_" AND SrcProcCmdScript Contains "\Environment") OR RegistryKeyPath Contains "COR_PROFILER_PATH" OR SrcProcCmdScript Contains "$env:COR_"
 ```
