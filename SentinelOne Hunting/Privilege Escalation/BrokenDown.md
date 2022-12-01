@@ -53,6 +53,14 @@ Nothing added to baseline
 RegistryKeyPath In Contains Anycase ("CurrentVersion\Image File Execution Options","CurrentVersion\SilentProcessExit") AND RegistryKeyPath In Contains Anycase ("GlobalFlag","ReportingMode","MonitorProcess")
 ```
 
+### Logon Scripts (Windows)
+
+Detects addition of logon scripts through command line or registry methods.
+
+```
+SrcProcCmdLine ContainsCIS "UserInitMprLogonScript" OR (RegistryKeyPath ContainsCIS "UserInitMprLogonScript" AND EventType = "Registry Value Create")
+```
+
 
 
 
