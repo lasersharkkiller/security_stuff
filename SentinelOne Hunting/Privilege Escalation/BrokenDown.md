@@ -46,3 +46,14 @@ Couldn't really get a good baseline on this one, I might return to it later on. 
 ```
 (SrcProcName = "sdbinst.exe" and ProcessCmd ContainsCIS ".sdb") OR ((RegistryKeyPath ContainsCIS "AppInit_DLLs" OR RegistryPath  ContainsCIS "AppCompatFlags") AND (EventType = "Registry Value Create" OR EventType = "Registry Value Modified") AND NOT srcProcName In Anycase ("NwSapSetup.exe"))
 ```
+
+### Change Default File Association
+
+Detection of file association changes. Detection by registry is noisy due to problem filtering on registry root, so install/uninstall apps create noise.
+
+Noisy, difficult to baseline. Maybe revisit
+
+```
+--- File assoc change by assoc command
+TgtProcCmdLine ContainsCIS "assoc" and TgtProcCmdLine RegExp ".*=.*"
+```
