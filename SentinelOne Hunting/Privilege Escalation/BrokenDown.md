@@ -44,6 +44,15 @@ Detects enabling of Guest account, adding Guest account to groups, as well as ch
 (SrcProcCmdLine ContainsCIS "net localgroup" AND SrcProcCmdLine ContainsCIS "guest /add") OR (SrcProcCmdLine ContainsCIS "net user" AND SrcProcCmdLine ContainsCIS "/active:yes") OR (RegistryKeyPath In Contains ("Terminal Server\AllowTSConnections","Terminal Server\DenyTSConnections") AND EventType In ("Registry Value Create","Registry Value Modified"))
 ```
 
+### Image File Execution Options Injection
+
+Detection of Image File Execution Options tampering for persistence through Registry monitoring.
+Nothing added to baseline
+
+```
+RegistryKeyPath In Contains Anycase ("CurrentVersion\Image File Execution Options","CurrentVersion\SilentProcessExit") AND RegistryKeyPath In Contains Anycase ("GlobalFlag","ReportingMode","MonitorProcess")
+```
+
 
 
 
