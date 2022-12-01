@@ -56,9 +56,19 @@ RegistryKeyPath In Contains Anycase ("CurrentVersion\Image File Execution Option
 ### Logon Scripts (Windows)
 
 Detects addition of logon scripts through command line or registry methods.
+Nothing added to baseline
 
 ```
 SrcProcCmdLine ContainsCIS "UserInitMprLogonScript" OR (RegistryKeyPath ContainsCIS "UserInitMprLogonScript" AND EventType = "Registry Value Create")
+```
+
+### Netsh Helper DLL
+
+Detection of "helper" dlls with network command shell, through command arguments or registry modification.
+Nothing added to baseline
+
+```
+(TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "add helper") OR (RegistryPath ContainsCIS "SOFTWARE\Microsoft\NetSh" AND EventType = "Registry Value Create")
 ```
 
 
