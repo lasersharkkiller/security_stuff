@@ -90,6 +90,26 @@ Nothing added to baseline
 (SrcProcCmdScript ContainsCIS "Add-Content $profile -Value" AND SrcProcCmdScript ContainsCIS "Start-Process") OR (TgtProcCmdLine ContainsCIS "Add-Content $profile" AND TgtProcCmdLine In Contains Anycase ("Start-Process","& ","cmd.exe /c"))
 ```
 
+### MavInject Process Injection
+
+Detects Process Injection through execution of MavInject, filtering out noisy/expected activity. `SrcProcParentName` filter narrows Cross Process items to HQ results.
+
+```
+(TgtProcName = "mavinject.exe" AND TgtProcCmdLine ContainsCIS "/injectrunning") AND (SrcProcName Not In ("AppVClient.exe") AND SrcProcParentName Not In ("smss.exe"))
+```
+
+### Security Support Provider
+
+Detection of changes to Security Support Provider through Registry modification. Filters most standard system changes with `SrcProcName Not In (list)` but there will be some noise from installers.
+
+Added XenDesktop
+
+```
+RegistryKeyPath ContainsCIS "\Control\Lsa\Security Packages" AND (SrcProcName Not In ("services.exe","SetupHost.exe","svchost.exe") AND SrcProcCmdLine Does Not ContainCIS "system32\wsauth.dll") and srcProcParentName != "XenDesktopVdaSetup.exe"
+
+
+```
+
 
 
 
@@ -139,4 +159,12 @@ SentinelOne has a bug about cross processes, I suspect this is throwing this rul
 
 ```
 (TgtProcRelation = "not_in_storyline" AND EventType = "Open Remote Process Handle" AND SrcProcParentName In Contains Anycase ("userinit.exe","powershell.exe","cmd.exe") AND TgtProcName != "sihost.exe" And TgtProcIntegrityLevel  != "LOW" AND TgtProcName Not In ("SystemSettings.exe")) OR (SrcProcCmdScript ContainsCIS "PPID-Spoof" AND SrcProcCmdScript ContainsCIS "hSpoofParent = [Kernel32]::OpenProcess")
+```
+
+### Detects malicious changes to screensaver through Registry changes, filtering expected processes.
+
+Needs a bit more baselining
+
+```
+RegistryKeyPath ContainsCIS "Control Panel\Desktop\SCRNSAVE.EXE" AND (EventType In ("Registry Value Create","Registry Value Modified") AND SrcProcName Not In ("svchost.exe","SetupHost.exe","CcmExec.exe"))
 ```
