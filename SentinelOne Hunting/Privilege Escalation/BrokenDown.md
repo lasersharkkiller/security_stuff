@@ -81,10 +81,19 @@ Nothing added to baseline
 (FileFullName = "C:\program.exe" AND EventType In ("File Creation","File Modification")) OR TgtProcImagePath = "C:\program.exe"
 ```
 
+### Malicious Process Start Added to Powershell Profile
+
+Detects the addition of process execution strings (`TgtProcCmdLine In Contains Anycase (list)`)to the powershell profile, through CommandLine and CommandScript indicators.
+Nothing added to baseline
+
+```
+(SrcProcCmdScript ContainsCIS "Add-Content $profile -Value" AND SrcProcCmdScript ContainsCIS "Start-Process") OR (TgtProcCmdLine ContainsCIS "Add-Content $profile" AND TgtProcCmdLine In Contains Anycase ("Start-Process","& ","cmd.exe /c"))
+```
 
 
 
-<br><br>
+
+<br><br><br><br>
 ## Can't Get a Good Baseline On
 
 ### Application Shimming: Detects application shimming through sdbinst or registry modification.
