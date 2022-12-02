@@ -71,6 +71,16 @@ Nothing added to baseline
 (TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "add helper") OR (RegistryPath ContainsCIS "SOFTWARE\Microsoft\NetSh" AND EventType = "Registry Value Create")
 ```
 
+### Unquoted Service Path for program.exe
+
+Detects creation or modification of the file at `C:\program.exe` for exploiting unquoted services paths of Program Files folder.
+
+Nothing added to baseline
+
+```
+(FileFullName = "C:\program.exe" AND EventType In ("File Creation","File Modification")) OR TgtProcImagePath = "C:\program.exe"
+```
+
 
 
 
