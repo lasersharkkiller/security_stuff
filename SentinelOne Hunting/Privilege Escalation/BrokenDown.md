@@ -188,8 +188,7 @@ Needs a good bit to baseline
 TgtProcName = "sc.exe" AND TgtProcCmdLine Contains "binPath="
 ```
 
-### T1547.004 Winlogon Helper DLL
-Atomics: [T1547.004](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md)
+### Winlogon Helper DLL
 
 Detects Winlogon Helper Dll changes through Registry MetadataIndicator item, as it holds the full registry change info but will only return data of the Indicators object type.
 Needs a good bit to baseline
