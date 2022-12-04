@@ -168,3 +168,32 @@ Needs a bit more baselining
 ```
 RegistryKeyPath ContainsCIS "Control Panel\Desktop\SCRNSAVE.EXE" AND (EventType In ("Registry Value Create","Registry Value Modified") AND SrcProcName Not In ("svchost.exe","SetupHost.exe","CcmExec.exe"))
 ```
+
+### Windows Management Instrumentation Event Subscription
+
+Detect WMI Event Subs using the New-CimInstance cmdlet, through CommandLine and CommandScript indicators.
+
+This one is going to take a good bit of work to baseline
+
+```
+SrcProcCmdLine ContainsCIS "New-CimInstance -Namespace root/subscription" OR SrcProcCmdScript ContainsCIS "New-CimInstance -Namespace root/subscription"
+```
+
+### Windows Service
+
+Detects creation and modification of windows services through binPath argument to sc.exe.
+Needs a good bit to baseline
+
+```
+TgtProcName = "sc.exe" AND TgtProcCmdLine Contains "binPath="
+```
+
+### T1547.004 Winlogon Helper DLL
+Atomics: [T1547.004](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md)
+
+Detects Winlogon Helper Dll changes through Registry MetadataIndicator item, as it holds the full registry change info but will only return data of the Indicators object type.
+Needs a good bit to baseline
+
+```
+IndicatorMetadata In Contains Anycase ("Microsoft\Windows NT\CurrentVersion\Winlogon","Microsoft\Windows NT\CurrentVersion\Winlogon\Notify") AND IndicatorMetadata In Contains Anycase ("logon","Userinit","Shell") AND IndicatorMetadata Does Not ContainCIS "WINDOWS\system32\userinit.exe"
+```
