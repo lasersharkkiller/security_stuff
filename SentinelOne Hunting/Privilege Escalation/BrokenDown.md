@@ -105,9 +105,7 @@ Detection of changes to Security Support Provider through Registry modification.
 Added XenDesktop
 
 ```
-RegistryKeyPath ContainsCIS "\Control\Lsa\Security Packages" AND (SrcProcName Not In ("services.exe","SetupHost.exe","svchost.exe") AND SrcProcCmdLine Does Not ContainCIS "system32\wsauth.dll") and srcProcParentName != "XenDesktopVdaSetup.exe"
-
-
+RegistryKeyPath ContainsCIS "\Control\Lsa\Security Packages" AND (SrcProcName Not In ("services.exe","SetupHost.exe","svchost.exe") AND SrcProcCmdLine Does Not ContainCIS "system32\wsauth.dll") AND srcProcParentName != "XenDesktopVdaSetup.exe"
 ```
 
 
