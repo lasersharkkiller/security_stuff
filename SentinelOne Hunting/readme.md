@@ -1,6 +1,6 @@
 ## SentinelOne Hunting
 
-In the spirit of keyboardcruch's hunt, this hunt pack strives to hunt for various TTPs at the top of the pyramid of pain, across the stages of the MITRE ATT&CK framework. Not really sure how to contribute to their project or I would just do that. Since Star Custom Rules (formerly known as Watchlist) limit operators to 20, you will have to run the root level queries manually. I have broken out each rule individually to help explain each one when they trigger. I will be slowly adding rules to in order to properly baseline for effectiveness.
+In the spirit of keyboardcruch's hunt, this hunt pack strives to hunt for various TTPs at the top of the pyramid of pain, across the stages of the MITRE ATT&CK framework. Not really sure how to contribute to their project or I would just do that. Since Star Custom Rules (formerly known as Watchlist) limit operators to 20, you will have to run the root level queries manually as Loaded Queries. I have broken out each rule individually to help explain each one when they trigger. I will be slowly adding rules to in order to properly baseline for effectiveness.
 
 References so far to build out rules:
 
