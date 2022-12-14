@@ -8,7 +8,8 @@ ATT&CK TTPs: https://attack.mitre.org/tactics/enterprise/ <br>
 keyboardcrunch premade rules: https://github.com/keyboardcrunch/SentinelOne-ATTACK-Queries <br>
 Elastic rules to be converted: https://www.elastic.co/guide/en/security/current/unusual-parent-child-relationship.html <br>
 S1 hunting examples: https://assets.sentinelone.com/dv/sentinel-one-dv-chea-2?xs=105463 <br>
-Sigma Rules: https://github.com/SigmaHQ/sigma/tree/master/rules/
+Sigma Rules: https://github.com/SigmaHQ/sigma/tree/master/rules/ <br>
+CyberSecurity & Infrastructure Agency Reports (NOT the STIX/TAXII feeds but rather a manual assessment of techniques) - https://www.cisa.gov/tlp <br>
 
 Good Hunting
 -Starbuck
