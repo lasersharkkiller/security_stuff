@@ -45,6 +45,24 @@ Reference: keyboardcrunch
 ((SrcProcCmdScript Contains "COR_" AND SrcProcCmdScript Contains "\Environment")  OR RegistryKeyPath Contains "COR_PROFILER_PATH" OR SrcProcCmdScript Contains "$env:COR_") AND NOT srcProcCmdLine Contains Anycase "stackify"
 ```
 
+### Logon Scripts
+
+Detects addition of logon scripts through command line or registry methods.
+Reference: keyboardcrunch
+
+```
+SrcProcCmdLine ContainsCIS "UserInitMprLogonScript" OR (RegistryKeyPath ContainsCIS "UserInitMprLogonScript" AND EventType = "Registry Value Create")
+```
+
+### Netsh Helper DLL
+
+Detection of "helper" dlls with network command shell, through command arguments or registry modification.
+Reference: keyboardcrunch
+
+```
+(TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "add helper") OR (RegistryPath ContainsCIS "SOFTWARE\Microsoft\NetSh" AND EventType = "Registry Value Create")
+```
+
 
 
 
@@ -77,4 +95,22 @@ Reference: keyboardcrunch
 
 ```
 ( FileFullName RegExp "\bWebstore Downloads\b.*\.(crx)$" OR FileFullName RegExp "\bstaged\b.*\.(xpi)$" ) AND EventType = "File Creation" AND NOT tgtFilePath Contains Anycase "sentinelone_visibility"
+```
+
+### Change Default File Association
+
+This query takes a lazy approach to detecting the staging of xpi or crx extension packages for installation within Chrome and Firefox based browsers. Unsure how to filter our extension updates without excluding too much.
+Reference: keyboardcrunch
+
+```
+TgtProcCmdLine ContainsCIS "assoc" and TgtProcCmdLine RegExp ".*=.*"
+```
+
+### Local Account Added
+
+In the query below we'll query all instances of local accounts being created for Windows, Linux, and OSX. Depending on your environment, you may find quite a bit of noise with the Linux useradd command.
+Reference: keyboardcrunch
+
+```
+SrcProcCmdLine In Contains Anycase ("net user /add","useradd","New-LocalUser") OR SrcProcCmdLine RegExp "\bdscl\b.*\b/\create\b" OR SrcProcCmdLine RegExp "\bnet localgroup administrators\b.*\b\/add\b"
 ```
