@@ -63,6 +63,27 @@ Reference: keyboardcrunch
 (TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "add helper") OR (RegistryPath ContainsCIS "SOFTWARE\Microsoft\NetSh" AND EventType = "Registry Value Create")
 ```
 
+### Unquoted Service Path for program.exe
+
+Detects creation or modification of the file at C:\program.exe for exploiting unquoted services paths of Program Files folder.
+Reference: keyboardcrunch
+
+```
+(FileFullName = "C:\program.exe" AND EventType In ("File Creation","File Modification")) OR TgtProcImagePath = "C:\program.exe"
+```
+
+### Malicious Process Start Added to Powershell Profile
+
+Detects the addition of process execution strings (TgtProcCmdLine In Contains Anycase (list))to the powershell profile, through CommandLine and CommandScript indicators.
+Reference: keyboardcrunch
+
+```
+(SrcProcCmdScript ContainsCIS "Add-Content $profile -Value" AND SrcProcCmdScript ContainsCIS "Start-Process") OR (TgtProcCmdLine ContainsCIS "Add-Content $profile" AND TgtProcCmdLine In Contains Anycase ("Start-Process","& ","cmd.exe /c"))
+```
+
+
+
+
 
 
 
