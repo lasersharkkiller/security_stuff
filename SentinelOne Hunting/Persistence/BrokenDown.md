@@ -81,6 +81,24 @@ Reference: keyboardcrunch
 (SrcProcCmdScript ContainsCIS "Add-Content $profile -Value" AND SrcProcCmdScript ContainsCIS "Start-Process") OR (TgtProcCmdLine ContainsCIS "Add-Content $profile" AND TgtProcCmdLine In Contains Anycase ("Start-Process","& ","cmd.exe /c"))
 ```
 
+### Transport Agent
+
+Detection of Powershell TransportAgent Cmdlets being used to setup an Exchange Transport Agent.
+Reference: keyboardcrunch
+
+```
+SrcProcCmdLine In Contains Anycase ("Install-TransportAgent","Enable-TransportAgent","Get-TransportAgent") OR SrcProcCmdScript In Contains Anycase ("Install-TransportAgent","Enable-TransportAgent","Get-TransportAgent")
+```
+
+### Windows Management Instrumentation Event Subscription
+
+Detect WMI Event Subs using the New-CimInstance cmdlet, through CommandLine and CommandScript indicators.
+Reference: keyboardcrunch
+
+```
+SrcProcCmdLine ContainsCIS "New-CimInstance -Namespace root/subscription" OR SrcProcCmdScript ContainsCIS "New-CimInstance -Namespace root/subscription"
+```
+
 
 
 
@@ -134,4 +152,58 @@ Reference: keyboardcrunch
 
 ```
 SrcProcCmdLine In Contains Anycase ("net user /add","useradd","New-LocalUser") OR SrcProcCmdLine RegExp "\bdscl\b.*\b/\create\b" OR SrcProcCmdLine RegExp "\bnet localgroup administrators\b.*\b\/add\b"
+```
+
+### Registry Run Keys / Startup Folder
+
+Here we're just focusing on the addition of registry keys to Run, RunOnce, RunOnceEx keys where Parent Process isn't "trusted".
+Reference: keyboardcrunch
+
+```
+FileFullName ContainsCIS "Programs\Startup" AND FileType In Contains Anycase ("vbs","jse","bat") AND EventType = "File Creation"
+```
+
+### Scheduled Tasks
+
+Our goal with this query is to detect any schtasks /create command as well as any use of the New-ScheduledTask* cmdlets from powershell, and to prevent noise from services and updates we'll exclude a list of system "trusted" SrcProcParentName executables.
+Needs a good bit to baseline
+
+```
+IndicatorName = "ScheduleTaskRegister" AND SrcProcParentName Not In ("Integrator.exe","OfficeClickToRun.exe","services.exe","OneDriveSetup.exe","Ccm32BitLauncher.exe","WmiPrvSE.exe")
+```
+
+### Startup Shortcuts
+
+Focuses on Test 2: Detection .lnk or .url files written to Startup folders. Filters noise with SrcProcName Not In (list) but you can remove noise from 3rd party update services updating their links by adding SrcProcParentName != "userinit.exe" to the query.
+Needs a good bit to baseline
+
+```
+(FileFullName ContainsCIS "Microsoft\Windows\Start Menu\Programs\Startup" AND TgtFileExtension In Contains ("lnk","url") AND EventType = "File Creation") AND SrcProcName Not In ("ONENOTE.EXE","msiexec.exe")
+```
+
+### Web Shell
+
+I wanted to get complicated and find any process pulling content from the internet before copying to inetpub but couldn't get that working, so we went generic with our detection and filtered out possibly trusted sources of noise.
+Needs a good bit to baseline
+
+```
+EventType = "File Creation" AND FileFullName ContainsCIS "inetpub\wwwroot" AND TgtFileExtension In Contains Anycase ("jsp","aspx","php") AND SrcProcName Not In ("explorer.exe","msdeploy.exe")
+```
+
+### Windows Service
+
+Detects creation and modification of windows services through binPath argument to sc.exe.
+Needs a good bit to baseline
+
+```
+TgtProcName = "sc.exe" AND TgtProcCmdLine Contains "binPath="
+```
+
+### Winlogon Helper DLL
+
+Detects Winlogon Helper Dll changes through Registry MetadataIndicator item, as it holds the full registry change info but will only return data of the Indicators object type.
+Needs a good bit to baseline
+
+```
+IndicatorMetadata In Contains Anycase ("Microsoft\Windows NT\CurrentVersion\Winlogon","Microsoft\Windows NT\CurrentVersion\Winlogon\Notify") AND IndicatorMetadata In Contains Anycase ("logon","Userinit","Shell") AND IndicatorMetadata Does Not ContainCIS "WINDOWS\system32\userinit.exe"
 ```
