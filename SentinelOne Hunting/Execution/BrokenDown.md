@@ -15,3 +15,11 @@ Reference: https://www.microsoft.com/en-us/security/blog/2021/03/02/hafnium-targ
 ```
 ProcessCmd CONTAINS anycase "powercat"
 ```
+
+### Powershell Empire Listeners, Stagers, and Modules invocation
+
+Reference: https://hackmag.com/security/powershell-empire/
+
+```
+ProcessCmd In CONTAINS anycase ("uselistener","usestager","usemodule") AND NOT (srcProcName = "EvoMouseListener.exe" OR srcProcCmdLine contains anycase "EvoMouseListener")
+```
