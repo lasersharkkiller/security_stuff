@@ -8,6 +8,14 @@ Used by various APTs but an example of use with Hafnium Exchange: https://www.mi
 ProcessCmd CONTAINS anycase "procdump" AND ProcessCmd CONTAINS anycase "lsass"
 ```
 
+### Bypass User Group Policy by Changing ntuser.dat to ntuser.man
+
+User Group Policy can be bypassed by changing ntuser.man to ntuser.dat: https://news.ycombinator.com/item?id=22363053
+
+```
+FileFullName EndsWith "Ntuser.man"
+```
+
 ### Detect interactive process execution scheduled by AT command.
 
 Nothing added to baseline
