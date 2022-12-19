@@ -5,7 +5,7 @@
 Tons of attackers use powershell encoding to obfuscate
 
 ```
-ProcessCmd CONTAINS "powershell -e" AND NOT  ProcessCmd In Contains ("executionpolicy","SentinelTroubleshooter.ps1")
+CmdLine In Contains Anycase ("powershell -e","frombase64string") AND NOT CmdLine In Contains Anycase ("executionpolicy","SentinelTroubleshooter.ps1")
 ```
 
 ### Look for obfuscation with the echo command 
