@@ -16,6 +16,22 @@ Reference: https://book.hacktricks.xyz/generic-methodologies-and-resources/tunne
 CmdLine Contains Anycase "portproxy add"
 ```
 
+### RDP Hijacking
+
+Reference: keyboardcrunch
+
+```
+SrcProcName = "tscon.exe" AND SrcProcCmdLine ContainsCIS "/dest:" AND NOT EndpointName = "GATUCTNUTCCR14W"
+```
+
+### Scripted Lateral RDP
+
+Reference: keyboardcrunch
+
+```
+TgtProcName = "cmdkey.exe" AND TgtProcCmdLine ContainsCIS "/generic:TERMSRV" AND TgtProcCmdLine ContainsCIS "/user:" AND TgtProcCmdLine ContainsCIS "/pass:"
+```
+
 ### WMI Remote Code Execution
 
 Baselined out IBM Data Collector
