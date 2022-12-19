@@ -10,6 +10,8 @@ Elastic rules to be converted: https://www.elastic.co/guide/en/security/current/
 S1 hunting examples: https://assets.sentinelone.com/dv/sentinel-one-dv-chea-2?xs=105463 <br>
 Sigma Rules: https://github.com/SigmaHQ/sigma/tree/master/rules/ <br>
 CyberSecurity & Infrastructure Agency Reports (NOT the STIX/TAXII feeds but rather a manual assessment of techniques) - https://www.cisa.gov/tlp <br>
+pentestmonkey: https://pentestmonkey.net/cheat-sheet <br>
+Hitch Hacker's Guide to the Network: https://github.com/lasersharkkiller/security_stuff/blob/master/red%20stuff/Hitch-Hacker's%20Guide%20to%20the%20Network.pdf <br>
 
 Good Hunting
 -Starbuck
