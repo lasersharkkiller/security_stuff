@@ -31,3 +31,11 @@ Technique used by APT41, but also others
 ```
 ProcessCmd In CONTAINS ("certutil","certutil.exe") AND ProcessCmd In Contains ("url","decode","hashfile")
 ```
+
+### O365 New-PSDrive
+
+Reference: https://www.blackhat.com/docs/us-17/wednesday/us-17-Dods-Infecting-The-Enterprise-Abusing-Office365-Powershell-For-Covert-C2.pdf
+
+```
+ProcessCmd CONTAINS "New-PSDrive"
+```
