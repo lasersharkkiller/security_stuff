@@ -21,6 +21,15 @@ Reference: keyboardcrunch
 (SrcProcCmdLine ContainsCIS "ms-settings\shell\open\command" OR SrcProcCmdLine ContainsCIS "mscfile\shell\open\command") OR (TgtProcDisplayName = "COM Surrogate" AND TgtProcCmdLine ContainsCIS "{3E5FC7F9-9A51-4367-9063-A120244FBEC7}")
 ```
 
+### Deobfuscate/Decode Files using Certutil
+
+This Atomic tests detections of certutil encoding and decoding of executables, and the replication of certutil for bypassing detection of executable encoding. Our query below will detected renamed certutil through matching of DisplayName, as well as encoding or decoding of exe files.
+Reference: keyboardcrunch
+
+```
+(TgtProcName != "certutil.exe" AND TgtProcDisplayName = "CertUtil.exe") OR ( TgtProcDisplayName = "CertUtil.exe" AND (TgtProcCmdLine RegExp "^.*(-decode).*\.(exe)" OR TgtProcCmdLine RegExp "^.*(-encode).*\.(exe)") )
+```
+
 ### Clear Windows Event Logs
 
 Detects the clearing of EventLogs through wevtutil (concise) as well as Clear-EventLog through CommandLine and CommandScript objects. Powershell cmdlet detection returns a lot of noise for the CommandScripts object, so filtering out SrcProcParentName may be required. *Note I had to take out the script part.
@@ -39,6 +48,24 @@ Reference: keyboardcrunch
 SrcProcName = "cmstp.exe" AND SrcProcCmdLine RegExp "^.*\.(inf)"
 ```
 
+### Compile After Delivery
+
+Both Atomic tests for this technique leverage csc.exe for compilation of code. The below will detect specific compilation of executables as well as dynamic compilation through detection of csc.exe creating executable files (both dll and exe). Filter noise from later portion of query using SrcProcParentName Not In (). *Note I could not easily baseline the second part of the query, it might be worth revisiting
+Reference: keyboardcrunch
+
+```
+(TgtProcName = "csc.exe" AND SrcProcCmdLine Contains "/target:exe")
+```
+
+### Compiled HTML File
+
+Breaking down the below query, the first section will detect Atomic Test 1 where a malicious chm file spawns a process, whereas the second half of the query detects hh.exe loading a remote payloads.
+Reference: keyboardcrunch
+
+```
+(SrcProcName = "hh.exe" AND EventType = "Open Remote Process Handle") OR (SrcProcName = "hh.exe" AND SrcProcCmdLine RegExp "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)")
+```
+
 ### COR Profiler
 
 Detection of unmanaged COR profiler hooking of .NET CLR through registry or process command.
@@ -46,6 +73,15 @@ Reference: keyboardcrunch
 
 ```
 ((SrcProcCmdScript Contains "COR_" AND SrcProcCmdScript Contains "\Environment")  OR RegistryKeyPath Contains "COR_PROFILER_PATH" OR SrcProcCmdScript Contains "$env:COR_") AND NOT srcProcCmdLine Contains Anycase "stackify"
+```
+
+### Enable Guest account with RDP and Admin
+
+Detects enabling of Guest account, adding Guest account to groups, as well as changing of Deny/Allow of Terminal Server connections through Registry changes.
+Reference: keyboardcrunch
+
+```
+(SrcProcCmdLine ContainsCIS "net localgroup" AND SrcProcCmdLine ContainsCIS "guest /add") OR (SrcProcCmdLine ContainsCIS "net user" AND SrcProcCmdLine ContainsCIS "/active:yes" AND NOT SrcProcParentName Contains Anycase "pwdspy") OR (RegistryKeyPath In Contains ("Terminal Server\AllowTSConnections","Terminal Server\DenyTSConnections") AND EventType In ("Registry Value Create","Registry Value Modified"))
 ```
 
 
