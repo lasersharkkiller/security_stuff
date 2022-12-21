@@ -100,6 +100,40 @@ Atomic #3 - Allow SMB and RDP on Defender Firewall
 *Disable local firewall rules #4-6 not easily baselineable, might be worth revisiting
 
 
+### Disable Tools (or Modify)
+
+Reference: keyboardcrunch
+
+Atomic #1 - Disable Syslog
+
+```
+TgtProcName In Contains ("service","chkconfig","systemctl") AND TgtProcCmdLine In Contains ("rsyslog stop","off rsyslog","stop rsyslog","disable rsyslog")
+```
+
+Atomic #9 AND #10 - Disable Sysmon
+
+```
+(TgtProcName = "fltmc.exe" AND TgtProcCmdLine ContainsCIS "unload SysmonDrv") OR (TgtProcName = "sysmon.exe" AND TgtProcCmdLine ContainsCIS "-u")
+```
+
+Atomic #11 - AMSI Bypass - AMSI InitFailed
+
+```
+TgtProcCmdLine ContainsCIS "[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)" OR SrcProcCmdScript ContainsCIS "[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)"
+```
+
+Atomic #12 - AMSI Bypass - Remove AMSI Provider Reg Key
+
+```
+RegistryPath ContainsCIS "\Microsoft\AMSI\Providers" AND EventType In ("Registry Key Delete","Registry Value Delete")
+```
+
+Atomic #17 - Disable Microsoft Office Security Features
+
+```
+(RegistryKeyPath ContainsCIS "Excel\Security" OR RegistryKeyPath ContainsCIS "Excel\Security\ProtectedView") AND RegistryKeyPath In Contains Anycase ("VBAWarnings","DisableInternetFilesInPV","DisableUnsafeLocationsInPV","DisableAttachementsInPV") AND EventType In ("Registry Value Create","Registry Value Modified")
+```
+
 ### Disable Windows Event Logging
 
 Atomic #1 - Disable IIS Logging
@@ -119,10 +153,48 @@ Reference: keyboardcrunch
 (SrcProcCmdLine ContainsCIS "net localgroup" AND SrcProcCmdLine ContainsCIS "guest /add") OR (SrcProcCmdLine ContainsCIS "net user" AND SrcProcCmdLine ContainsCIS "/active:yes" AND NOT SrcProcParentName Contains Anycase "pwdspy") OR (RegistryKeyPath In Contains ("Terminal Server\AllowTSConnections","Terminal Server\DenyTSConnections") AND EventType In ("Registry Value Create","Registry Value Modified"))
 ```
 
+### Mshta
+
+SentinelOne happens to be pretty good at detecting MSHTA attacks, and IndicatorName = "SuspiciousScript" specifically picks out these javascript based attacks very well. The below query will detect mshta.exe spawning processes as well as URLs for remote payloads to be loaded by mshta.
+Reference: keyboardcrunch
+
+```
+(SrcProcName = "mshta.exe" and EventType = "Open Remote Process Handle") OR (SrcProcName = "mshta.exe" AND SrcProcCmdLine RegExp "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)")
+```
+
+### Process Hollowing (Atomic Red)
+
+Detect Process Hollowing using the Start-Hollow powershell script, through CommandLine and CommandScript indicators.
+
+The IndicatorCategory = "Injection" has a lot of noise, but in the future a combination of EventType = "Duplicate Process Handle" AND TgtProcRelation = "storyline_child" joined with some ChildProcCount or CrossProcCount > 0 may help filter the noise.
+Reference: keyboardcrunch
+
+```
+(SrcProcCmdScript ContainsCIS "Start-Hollow" AND SrcProcCmdScript ContainsCIS "[Hollow]::NtQueryInformationProcess") OR TgtProcCmdLine ContainsCIS "Start-Hollow"
+```
+
+### Process Injection
+
+Detects Process Injection through execution of MavInject, filtering out noisy/expected activity. SrcProcParentName filter narrows Cross Process items to HQ results.
+Reference: keyboardcrunch
+
+```
+(TgtProcName = "mavinject.exe" AND TgtProcCmdLine ContainsCIS "/injectrunning") AND (SrcProcName Not In ("AppVClient.exe") AND SrcProcParentName Not In ("smss.exe"))
+```
+
+### Unquoted Service Path for program.exe
+
+Detects creation or modification of the file at C:\program.exe for exploiting unquoted services paths of Program Files folder.
+Reference: keyboardcrunch
+
+```
+(FileFullName = "C:\program.exe" AND EventType In ("File Creation","File Modification")) OR TgtProcImagePath = "C:\program.exe"
+```
+
 
 ### Windows Defender Commands to Stop 
 
-Technique came from analyzing Cybersecurity and Infrastructure Security Agency report 10412261.r2.v1
+Technique came from analyzing Cybersecurity and Infrastructure Security Agency (CISA) report 10412261.r2.v1
 
 ```
 CmdLine Contains Anycase "stop WinDefend" OR CmdLine Contains Anycase "delete WinDefend"
@@ -131,7 +203,7 @@ CmdLine Contains Anycase "stop WinDefend" OR CmdLine Contains Anycase "
 
 ### Windows Defender Real Time Monitoring Command to Disable 
 
-Technique came from analyzing Cybersecurity and Infrastructure Security Agency report 10412261.r2.v1
+Technique came from analyzing Cybersecurity and Infrastructure Security Agency (CISA) report 10412261.r2.v1
 This rule excludes RightFax
 
 ```
