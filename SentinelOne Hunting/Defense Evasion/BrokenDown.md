@@ -75,6 +75,41 @@ Reference: keyboardcrunch
 ((SrcProcCmdScript Contains "COR_" AND SrcProcCmdScript Contains "\Environment")  OR RegistryKeyPath Contains "COR_PROFILER_PATH" OR SrcProcCmdScript Contains "$env:COR_") AND NOT srcProcCmdLine Contains Anycase "stackify"
 ```
 
+### Disable Firewall Local
+
+Reference: keyboardcrunch
+
+Atomic #1 - Linux
+
+```
+(SrcProcName In Contains ("service","chkconfig") AND SrcProcCmdLine In Contains ("off","stop") AND SrcProcCmdLine ContainsCIS "tables") OR (TgtProcName = "systemctl" AND TgtProcCmdLine In Contains ("stop","disable") AND TgtProcCmdLine Contains "firewalld")
+```
+
+Atomic #2 - Disable Defender Firewall
+
+```
+TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "state off"
+```
+
+Atomic #3 - Allow SMB and RDP on Defender Firewall
+
+```
+(TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "remote desktop" AND TgtProcCmdLine ContainsCIS "enable=Yes") OR (TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "file and printer sharing" AND TgtProcCmdLine ContainsCIS "enable=Yes")
+```
+
+*Disable local firewall rules #4-6 not easily baselineable, might be worth revisiting
+
+
+### Disable Windows Event Logging
+
+Atomic #1 - Disable IIS Logging
+Reference: keyboardcrunch
+
+```
+(TgtProcName = "appcmd.exe" AND TgtProcCmdLine ContainsCIS "/dontLog:true" AND TgtProcCmdLine ContainsCIS "/section:httplogging")
+OR (SrcProcCmdLine ContainsCIS "Invoke-Phant0m" OR SrcProcCmdScript ContainsCIS "$Kernel32::TerminateThread($getThread" OR SrcProcCmdScript ContainsCIS "Invoke-Phant0m")
+```
+
 ### Enable Guest account with RDP and Admin
 
 Detects enabling of Guest account, adding Guest account to groups, as well as changing of Deny/Allow of Terminal Server connections through Registry changes.
