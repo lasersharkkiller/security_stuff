@@ -51,6 +51,14 @@ Reference: keyboardcrunch
 TgtProcCmdLine ContainsCIS "save HKLM\security\policy\secrets"
 ```
 
+### LSA SilentProcessExitTechnique
+
+Reference: Florian Roth
+
+```
+RegistryKeyPath contains anycase "Microsoft\Windows NT\CurrentVersion\SilentProcessExit\lsass.exe"
+```
+
 ### LSASS Memory Dumping
 
 For simplicity, we're detecting a Cmdline used for both psexec (the test) as well as direct reg.exe LSA extraction.
