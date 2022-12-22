@@ -8,4 +8,5 @@ OR (ProcessCmd CONTAINS "New-PSDrive")
 OR (CmdLine In Contains Anycase ("powershell -e","frombase64string") AND NOT CmdLine In Contains Anycase ("executionpolicy","SentinelTroubleshooter.ps1"))
 OR (DNS EndsWith ".onion")
 OR (TgtFileExtension Contains Anycase "resmoncfg" AND EventType = "File Creation"  AND SrcProcName != "CLRestore.exe")
+OR (CmdLine Contains Anycase "wget -t")
 ```
