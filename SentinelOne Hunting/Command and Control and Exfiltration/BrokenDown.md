@@ -8,6 +8,14 @@ Technique used by APT41, but also others
 ProcessCmd In CONTAINS ("certutil","certutil.exe") AND ProcessCmd In Contains ("url","decode","hashfile")
 ```
 
+### Download Suspicious from Office Domain
+
+Detects suspicious ways to download files from Microsoft domains that are used to store attachments in Emails or OneNote documents
+
+```
+(((TgtProcImagePath endswith "\curl.exe" OR TgtProcImagePath endswith "\wget.exe") OR (TgtProcCmdLine contains anycase "Invoke-WebRequest" OR TgtProcCmdLine contains anycase "iwr " OR TgtProcCmdLine contains anycase "curl " OR TgtProcCmdLine contains anycase "wget " OR TgtProcCmdLine contains anycase "Start-BitsTransfer" OR TgtProcCmdLine contains anycase ".DownloadFile(" OR TgtProcCmdLine contains anycase ".DownloadString(")) AND (TgtProcCmdLine contains anycase "https://attachment.outlook.live.net/owa/" OR TgtProcCmdLine contains anycase "https://onenoteonlinesync.onenote.com/onenoteonlinesync/"))
+```
+
 ### Echo with Obfuscation 
 
 Can be used in various manners but one example: https://www.bleepingcomputer.com/news/security/winnti-hackers-split-cobalt-strike-into-154-pieces-to-evade-detection/
