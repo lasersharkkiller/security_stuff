@@ -55,3 +55,11 @@ configuration is not installed on the compromised system.
 ```
 TgtFileExtension Contains Anycase "resmoncfg" AND EventType = "File Creation"  AND SrcProcName != "CLRestore.exe"
 ```
+
+### wget -t
+
+Reference CISA #10413062; The dll uses wget -t 1 to limit attempts to download only once, oddly wget -t never triggers in a 90 day baseline
+
+```
+CmdLine Contains Anycase "wget -t"
+```
