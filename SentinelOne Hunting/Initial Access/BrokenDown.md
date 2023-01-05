@@ -24,3 +24,27 @@ Reference: keyboardcrunch
 ```
 (SrcProcCmdLine ContainsCIS "net localgroup" AND SrcProcCmdLine ContainsCIS "guest /add") OR (SrcProcCmdLine ContainsCIS "net user" AND SrcProcCmdLine ContainsCIS "/active:yes" AND NOT SrcProcParentName Contains Anycase "pwdspy") OR (RegistryKeyPath In Contains ("Terminal Server\AllowTSConnections","Terminal Server\DenyTSConnections") AND EventType In ("Registry Value Create","Registry Value Modified"))
 ```
+
+### Outlook Temp Folder Execution
+
+Looks for executions out of the outlook temp folder
+
+```
+TgtProcImagePath contains anycase "Temporary Internet Files" AND TgtProcImagePath contains anycase "Content.Outlook"
+```
+
+### Registry Trust Record Modification
+
+Alerts on trust record modification within the registry, indicating usage of macros
+
+```
+RegistryKeyPath contains anycase "TrustRecords"
+```
+
+### Remote Desktop User Add
+
+Detects suspicious command line in which a user gets added to the local Remote Desktop Users group.
+
+```
+(SrcProcCmdLine ContainsCIS "net localgroup" AND SrcProcCmdLine ContainsCIS "guest /add") OR (SrcProcCmdLine ContainsCIS "net user" AND SrcProcCmdLine ContainsCIS "/active:yes" AND NOT SrcProcParentName Contains Anycase "pwdspy") OR (RegistryKeyPath In Contains ("Terminal Server\AllowTSConnections","Terminal Server\DenyTSConnections") AND EventType In ("Registry Value Create","Registry Value Modified"))
+```
