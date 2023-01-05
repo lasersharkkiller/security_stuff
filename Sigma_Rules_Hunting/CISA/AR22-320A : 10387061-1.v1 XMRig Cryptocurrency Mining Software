@@ -1,0 +1,24 @@
+title: Malware User Agent
+id: 
+status: experimental
+description: XMRig Cryptomining Software
+references:
+    - AR22-320A : 10387061-1.v1 XMRig Cryptocurrency Mining Software
+author: Cyber Panda
+date: 2023/01/05
+modified: 2023/01/05
+tags:
+    - attack.command_and_control
+    - attack.t1071.001
+logsource:
+    category: proxy
+detection:
+    selection:
+        c-useragent:
+            - 'XMRig' # User Agent contains XMRig
+    condition: selection
+fields:
+    - c-useragent
+falsepositives:
+    - Unknown
+level: medium
