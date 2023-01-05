@@ -1,0 +1,23 @@
+title: Zimbra October 2022 Update
+id: 
+status: experimental
+description: Looks for the bin.config file referenced by the Cobalt Strike beacon. This is not normal in environments. The config file is decrypted and executed by vftrace.dll, in this case with a hard coded XOR key 0x4f
+references:
+    - AR22-292A : 10398871-1.v2 Zimbra October Update
+author: Cyber Panda
+date: 2023/01/05
+modified: 2023/01/05
+tags:
+    - Zimbra
+    - attack.execution
+    - attack.t1074
+logsource:
+    category: file_event
+detection:
+    selection:
+        TargetFilename|endswith:
+            - 'bin.config' # Looks for the bin.config file referenced by the Cobalt Strike beacon.
+    condition: selection
+falsepositives:
+    - DupFF64
+level: medium
