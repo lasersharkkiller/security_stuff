@@ -182,6 +182,15 @@ Reference: keyboardcrunch
 (TgtProcName = "mavinject.exe" AND TgtProcCmdLine ContainsCIS "/injectrunning") AND (SrcProcName Not In ("AppVClient.exe") AND SrcProcParentName Not In ("smss.exe"))
 ```
 
+### SentinelOne Disable
+
+One way to disable S1 is to run this command from an elevated command prompt
+Reference: https://forums.sheridancomputers.co.uk/t/how-to-temporarily-disable-sentinelone/76
+
+```
+CmdLine Contains Anycase "sentinelctl unload"
+```
+
 ### Unquoted Service Path for program.exe
 
 Detects creation or modification of the file at C:\program.exe for exploiting unquoted services paths of Program Files folder.
