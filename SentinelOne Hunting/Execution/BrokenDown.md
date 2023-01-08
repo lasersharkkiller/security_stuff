@@ -1,5 +1,15 @@
 ## Execution
 
+### AT Scheduled Task
+
+Detect interactive process execution scheduled by AT command.
+Reference: keyboardcrunch
+
+```
+TgtProcName = "at.exe" AND TgtProcCmdLine ContainsCIS "/interactive "
+```
+
+
 ### Certutil for C2 or to pull files
 
 Technique used by APT41, but also others
@@ -22,6 +32,14 @@ Reference: keyboardcrunch
 
 ```
 TgtProcCmdLine In Contains Anycase ("delete shadows","shadowcopy delete","delete catalog","recoveryenabled no") OR (TgtProcCmdLine ContainsCIS "Win32_ShadowCopy" AND TgtProcCmdLine ContainsCIS "Delete()") OR (SrcProcCmdScript ContainsCIS "Win32_ShadowCopy" AND SrcProcCmdScript ContainsCIS "Delete()")
+```
+
+### Kali Common Tools
+
+Reference: https://tdm.socprime.com/tdm/info/q9Q5bNhgATUD/#sigma
+
+```
+TgtProcImagePath IN Contains Anycase ("/sqlmap","/teamserver","/aircrack-ng","/john","/setoolkit","/wpscan","/hydra","/nikto")
 ```
 
 ### Powercat Hafnium (targeted vulnerable Exchange servers)
