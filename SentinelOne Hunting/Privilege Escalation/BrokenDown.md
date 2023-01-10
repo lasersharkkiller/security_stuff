@@ -8,6 +8,15 @@ Used by various APTs but an example of use with Hafnium Exchange: https://www.mi
 ProcessCmd CONTAINS anycase "procdump" AND ProcessCmd CONTAINS anycase "lsass"
 ```
 
+### Find SGID/SUID bit set files
+
+Looks for attempts to locate files with SGID/SUID bit set
+Reference: HHGN, Priv Esc Basics
+
+```
+TgtProcImagePath endswith "/find" AND TgtProcCmdLine IN contains anycase ("-perm -4000","-perm -2000","-perm 0777","-perm -222","-perm -o w","-perm -o x","-perm -u=s","-perm -g=s")
+```
+
 ### Bypass User Group Policy by Changing ntuser.dat to ntuser.man
 
 User Group Policy can be bypassed by changing ntuser.man to ntuser.dat: https://news.ycombinator.com/item?id=22363053
@@ -68,6 +77,15 @@ Reference: keyboardcrunch
 
 ```
 RegistryKeyPath In Contains Anycase ("CurrentVersion\Image File Execution Options","CurrentVersion\SilentProcessExit") AND RegistryKeyPath In Contains Anycase ("GlobalFlag","ReportingMode","MonitorProcess")
+```
+
+### Ldapsearch (Linux)
+
+Detects use of ldapsearch
+Reference: Malware Analysis Report (AR22-270A): https://www.cisa.gov/uscert/ncas/analysis-reports/ar22-270a
+
+```
+TgtProcCmdLine contains anycase "ldapsearch" AND NOT (TgtProcCmdLine contains anycase "centrify" OR srcProcName = "splunkd")
 ```
 
 ### Logon Scripts (Windows)
