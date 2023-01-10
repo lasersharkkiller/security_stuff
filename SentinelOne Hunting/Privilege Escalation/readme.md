@@ -2,6 +2,7 @@
 
 ```
 ProcessCmd CONTAINS anycase "procdump" AND ProcessCmd CONTAINS anycase "lsass"
+OR (TgtProcImagePath endswith "/find" AND TgtProcCmdLine IN contains anycase ("-perm -4000","-perm -2000","-perm 0777","-perm -222","-perm -o w","-perm -o x","-perm -u=s","-perm -g=s"))
 OR (FileFullName EndsWith "Ntuser.man")
 OR (TgtProcName = "at.exe" AND TgtProcCmdLine ContainsCIS "/interactive ") 
 OR ((RegistryKeyPath ContainsCIS "CurrentVersion\Image File Execution Options" AND RegistryKeyPath ContainsCIS ".exe\Debugger") AND (EventType = "Registry Value Create" OR EventType = "Registry Key Create")) 
@@ -10,6 +11,7 @@ OR (TgtProcDisplayName = "COM Surrogate" AND TgtProcCmdLine ContainsCIS 
 OR ((SrcProcCmdScript Contains "COR_" AND SrcProcCmdScript Contains "\Environment") OR RegistryKeyPath Contains "COR_PROFILER_PATH" OR SrcProcCmdScript Contains "$env:COR_")
 OR (SrcProcCmdLine ContainsCIS "net localgroup" AND SrcProcCmdLine ContainsCIS "guest /add") OR (SrcProcCmdLine ContainsCIS "net user" AND SrcProcCmdLine ContainsCIS "/active:yes") OR (RegistryKeyPath In Contains ("Terminal Server\AllowTSConnections","Terminal Server\DenyTSConnections") AND EventType In ("Registry Value Create","Registry Value Modified"))
 OR (RegistryKeyPath In Contains Anycase ("CurrentVersion\Image File Execution Options","CurrentVersion\SilentProcessExit") AND RegistryKeyPath In Contains Anycase ("GlobalFlag","ReportingMode","MonitorProcess"))
+OR (TgtProcCmdLine contains anycase "ldapsearch" AND NOT (TgtProcCmdLine contains anycase "centrify" OR srcProcName = "splunkd"))
 OR (SrcProcCmdLine ContainsCIS "UserInitMprLogonScript" OR (RegistryKeyPath ContainsCIS "UserInitMprLogonScript" AND EventType = "Registry Value Create"))
 OR ((TgtProcName = "netsh.exe" AND TgtProcCmdLine ContainsCIS "add helper") OR (RegistryPath ContainsCIS "SOFTWARE\Microsoft\NetSh" AND EventType = "Registry Value Create"))
 OR ((FileFullName = "C:\program.exe" AND EventType In ("File Creation","File Modification")) OR TgtProcImagePath = "C:\program.exe")
