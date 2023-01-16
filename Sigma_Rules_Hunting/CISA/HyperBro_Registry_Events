@@ -1,0 +1,30 @@
+title: HyperBro Registry Events
+id: 
+status: experimental
+description: To achieve persistence on the system, the program creates a service in the registry called ‘Windows Defenders Service’ that starts automatically when the user logs on.
+references:
+    - AR22-277B:MAR-10365227-2.v1 HyperBro
+    - https://www.elastic.co/guide/en/security/current/disabling-user-account-control-via-registry-modification.html
+author: Cyber Panda
+date: 2023/01/08
+modified: 2023/01/05
+tags:
+    - HyperBro
+    - attack.persistence
+    - attack.defense_evasion
+    - attack.t1074
+logsource:
+  category: registry_event
+  product: windows
+detection:
+  selection_registry_1:
+    - TargetObject|contains: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableLUA' #This is the UAC registry key, Absolute is a false positive
+    - TargetObject|contains: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ConsentPromptBehaviorAdmin'
+    - TargetObject|contains: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\PromptOnSecureDesktop'
+  selection_registry_2:
+    TargetObject|contains: 'System\CurrentControlSet\services\windefe' #See article for full list of registry entries
+  condition: 1 of selection_registry_*
+falsepositives:
+    - Absolute
+    - Blender
+level: medium
