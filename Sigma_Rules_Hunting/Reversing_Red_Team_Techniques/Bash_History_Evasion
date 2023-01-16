@@ -1,0 +1,27 @@
+title: "Bash History Evasion"
+id: 
+description: "Attackers often try to cover their tracks by turning off the history file or modifying it in various ways"
+references:
+- https://digi.ninja/blog/hiding_bash_history.php#:~:text=unset%20HISTFILE%20%2D%20Clears%20the%20variable,of%20commands%20to%20not%20log.
+author: Cyber Panda
+date: 2023/01/15
+tags:
+- attack.initial_access
+status: "experimental"
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    CommandLine|contains:
+    - export HISTSIZE=0
+    - unset histfile
+    - history -c
+    - history -r
+    - export HISTIGNORE
+  condition: selection
+fields:
+- ""
+falsepositives:
+- Cloudera JOBHISTORY -regex
+level: "medium"
