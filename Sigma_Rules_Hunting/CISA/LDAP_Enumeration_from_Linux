@@ -1,0 +1,33 @@
+title: "ldapsearch - LDAP Enumeration from Linux"
+id: 
+description: "During account enumeration, the most common way to enumerate LDAP servers from Linux machines is ldapquery since it is built in"
+references:
+- Malware Analysis Report (AR22-270A): https://www.cisa.gov/uscert/ncas/analysis-reports/ar22-270a
+author: Cyber Panda
+date: 2023/01/10
+tags:
+- attack.discovery
+- attack.t1046
+status: "experimental"
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    CommandLine|contains:
+    - ldapsearch
+    - ldapmodify
+    - ldapdelete
+    selection_filter:
+    CommandLine|contains:
+    - centrify
+    - cloudera
+    - ldapdelete
+  condition: selection and not selection_filter
+fields:
+- ""
+falsepositives:
+- Centrify
+- Cloudera
+- Splunk
+level: "medium"
