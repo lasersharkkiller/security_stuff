@@ -1,6 +1,6 @@
-title: Malware User Agent
-id: 
-status: experimental
+title: XMRig Malware User Agent
+id: 273378d1-5348-4926-9778-bdb41133a6fb
+status: stable
 description: XMRig Cryptomining Software
 references:
     - AR22-320A : 10387061-1.v1 XMRig Cryptocurrency Mining Software
@@ -14,7 +14,7 @@ logsource:
     category: proxy
 detection:
     selection:
-        c-useragent:
+        c-useragent|contains:
             - 'XMRig' # User Agent contains XMRig
     condition: selection
 fields:
