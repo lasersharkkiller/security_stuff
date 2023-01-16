@@ -1,0 +1,27 @@
+title: HyperBro File Events
+id: 
+status: experimental
+description: First technique it looks for is disabling UAC, a broad technique which can be applied generically. Second it Look for signs of thumb.dat which is a config file that spawns a new service host process (svchost.exe) and injects itself, and also looks for windefenders folders. To achieve persistence on the system, the program creates a service in the registry called ‘Windows Defenders Service’ that starts automatically when the user logs on.
+references:
+    - AR22-277B:MAR-10365227-2.v1 HyperBro
+author: Cyber Panda
+date: 2023/01/08
+modified: 2023/01/05
+tags:
+    - HyperBro
+    - UAC
+    - attack.defense_evasion
+    - attack.execution
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_file_1:
+    TargetFilename|endswith: 'thumb.dat' # Looks for the thumb.dat file created by 
+  selection_file_2:
+    TargetFilename|contains: 'windefenders' # The malware creates a hidden folder called ‘windefenders’ in the path C:\Program Files (x86)\Common Files\ where it will copy the PE file ‘msmpeng.exe’ along with the GUID file, ‘config.ini’, the malicious library ‘vftrace.dll’, and the encrypted configuration file ‘thumb.dat’. A second hidden folder called ‘windefenders’ is also created in the path C:\ProgramData\. This folder holds another instance of the PE file.
+  condition: 1 of selection_file_*
+falsepositives:
+    - Absolute
+    - Blender
+level: medium
