@@ -1,0 +1,22 @@
+title: "SentinelOne Disable"
+id: 
+description: "One way to disable S1 is to run this command from an elevated command prompt"
+references:
+- https://forums.sheridancomputers.co.uk/t/how-to-temporarily-disable-sentinelone/76
+author: Cyber Panda
+date: 2023/01/08
+tags:
+- attack.defense_evasion
+status: "experimental"
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    CommandLine|contains: 'sentinelctl unload'
+  condition: selection
+fields:
+- ""
+falsepositives:
+- Admin activity
+level: "medium"
