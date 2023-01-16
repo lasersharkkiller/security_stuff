@@ -1,0 +1,24 @@
+title: "Event Log Clear Detection by Event Logs"
+id: 
+description: "Event Logs Cleared Detected Through Events 104 and 1102"
+references:
+- https://dfirtnt.wordpress.com/2020/11/25/detecting-ransomware-precursors/
+author: Cyber Panda
+date: 2023/01/15
+tags:
+- attack.initial_access
+status: "experimental"
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_104:
+    EventID: ‘104’
+  selection_1102:
+    EventID: ‘1102’
+  condition: one of selection_*
+fields:
+- ""
+falsepositives:
+- Cloudera JOBHISTORY -regex
+level: "medium"
