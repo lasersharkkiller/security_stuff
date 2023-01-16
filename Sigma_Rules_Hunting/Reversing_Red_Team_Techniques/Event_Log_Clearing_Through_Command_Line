@@ -1,0 +1,23 @@
+title: "Event Log Clear Through Command Line (Windows)"
+id: 
+description: "Attackers often try to cover their tracks by deleting logs"
+references:
+- https://attack.mitre.org/techniques/T1070/001/
+author: Cyber Panda
+date: 2023/01/15
+tags:
+- attack.initial_access
+status: "experimental"
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    CommandLine|contains:
+    - wevtutil cl
+  condition: selection
+fields:
+- ""
+falsepositives:
+- Cloudera JOBHISTORY -regex
+level: "medium"
