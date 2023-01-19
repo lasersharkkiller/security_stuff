@@ -1,0 +1,30 @@
+title: "Mshta Spawn From Office"
+id: 
+description: "Mshta spawned from Office Applications"
+references:
+- https://www.varonis.com/blog/the-malware-hiding-in-your-windows-system32-folder-part-iii-certutil-and-alternate-data-streams  
+author: Cyber Panda
+date: 2023/01/15
+tags:
+- attack.initial_access
+- attack.defense_evasion
+status: "experimental"
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    ParentImage|contains: 
+    - ‘powershell’
+   selection2:
+    Image|contains:
+    - ‘outlook’
+    - ‘word’
+    - ‘excel’
+    - ‘powerpoint’
+  condition: selection and selection2
+fields:
+- ""
+falsepositives:
+- None known
+level: "medium"
