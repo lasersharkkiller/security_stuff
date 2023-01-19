@@ -1,0 +1,32 @@
+title: "Certutil Abuse Bypass"
+id: 
+description: "Certutil Abuse Bypass"
+references:
+- https://www.trendmicro.com/en_us/research/18/j/malware-targeting-brazil-uses-legitimate-windows-components-wmi-and-certutil-as-part-of-its-routine.html  
+author: Cyber Panda
+date: 2023/01/15
+tags:
+- attack.initial_access
+- attack.defense_evasion
+status: "experimental"
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    CommandLine|contains:
+    - ‘copy’
+    - ‘cp’
+   selection2:
+    CommandLine|contains:
+    - ‘certutil’
+    - ‘mshta’
+    selection_filter:
+    CommandLine|contains:
+    - ‘DigiCertUtil’
+  condition: selection and selection2 and not selection_filter
+fields:
+- ""
+falsepositives:
+- None known
+level: "medium"
