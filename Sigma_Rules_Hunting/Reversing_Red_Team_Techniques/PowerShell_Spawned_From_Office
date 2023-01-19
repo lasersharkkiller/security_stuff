@@ -1,0 +1,37 @@
+title: "PowerShell Spawn From Office"
+id: 
+description: "PowerShell spawned from Office Applications"
+references:
+- https://www.trendmicro.com/en_us/research/17/e/rising-trend-attackers-using-lnk-files-download-malware.html 
+author: Cyber Panda
+date: 2023/01/15
+tags:
+- attack.initial_access
+- attack.defense_evasion
+status: "experimental"
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    ParentImage|contains:
+    - ‘word’
+    - ‘excel’
+    - ‘powerpoint’
+   selection2:
+    Image|contains:
+    - ‘powershell’
+    selection_filter:
+     CommandLine|contains:
+    - ‘NoProfile’
+    - ‘ConfigMgrClientHealth.ps1’
+    - ‘GetAdobeEntitlement’
+    - ‘PSVersionTable’
+    - ‘Get-AppxPackage’
+    - ‘169.254.169.254’
+  condition: selection and selection2 and not selection_filter
+fields:
+- ""
+falsepositives:
+- None known
+level: "medium"
