@@ -1,5 +1,7 @@
 ## Initial Access
 
+*Remember these are limited to 20 operators so that you can plug them into Custom Star Rules, formerly known as Watchlist.
+
 ### Hunt Pack #1
 ```
 (SrcProcName Contains Anycase "certutil" AND SrcProcCmdLine In Contains Anycase ("urlcache","encode","decode","decodehex"))
