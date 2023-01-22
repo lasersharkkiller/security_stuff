@@ -60,12 +60,29 @@ SrcProcName Contains Anycase "mshta" AND SrcProcCmdLine In Contains Anyc
 TgtProcName Contains Anycase "mshta" AND (SrcProcName In Contains Anycase ("word","excel","powerpoint") OR SrcProcParentName In Contains Anycase ("word","excel","powerpoint"))
 ```
 
+### Outlook File Type Attacker Techniques
+
+Reference: https://www.darkreading.com/endpoint/post-macro-world-container-files-distribute-malware-replacement
+.Ison and .Isom exceptions are last names
+
+```
+(SrcProcName Contains Anycase "outlook" AND FilePath In Contains Anycase (".img",".iso",".rar") AND NOT FilePath In Contains Anycase (".Ison",".Isom") AND eventType != "File Deletion")
+```
+
 ### Outlook Temp Folder Execution
 
 Looks for executions out of the outlook temp folder
 
 ```
 TgtProcImagePath contains anycase "Temporary Internet Files" AND TgtProcImagePath contains anycase "Content.Outlook"
+```
+
+### Outlook Unzip By Command
+
+Reference: https://stackoverflow.com/questions/17546016/how-can-you-zip-or-unzip-from-the-script-using-only-windows-built-in-capabiliti 
+
+```
+SrcProcName Contains Anycase "outlook" AND CmdLine In Contains Anycase ("powershell","IO.Compression.ZipFile","jar","Expand-Archive","7zip","tar",".vbs","gzipjs","compact") AND CmdLine In Contains Anycase (".zip",".7z",".rar",".iso",".img",".gz")
 ```
 
 ### PowerShell Spawned From Outlook
