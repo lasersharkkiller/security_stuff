@@ -28,7 +28,7 @@ CmdLine In Contains Anycase ("export HISTSIZE=0","unset histfile","history
 Detects suspicious use of an .exe extension after a non-executable file extension like .pdf.exe, a set of spaces or underlines to cloak the executable file in spear phishing campaigns. Before I was using EndsWith Anycase, but S1 does not support In EndsWith Anycase so I had to switch to In Contains Anycase which makes it less efficient but allows me to use less operators and in the end use less custom star rules (considering they want 140k to do 300 rules).
 
 ```
-(TgtProcImagePath In Contains Anycase (".doc.exe",".docx.exe",".xls.exe",".xlsx.exe",".ppt.exe",".pptx.exe",".rtf.exe",".pdf.exe",".txt.exe","      .exe","______.exe"))
+TgtProcImagePath In Contains Anycase (".doc.exe",".docx.exe",".xls.exe",".xlsx.exe",".ppt.exe",".pptx.exe",".rtf.exe",".pdf.exe",".txt.exe","      .exe","______.exe")
 ```
 
 ### Enable Guest account with RDP and Admin
