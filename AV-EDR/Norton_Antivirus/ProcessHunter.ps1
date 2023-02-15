@@ -1,17 +1,22 @@
-### Step 1: Enumerate process with forensics artifacts according to SANS 508 - check
-### Step 2: Build in core processes from SANS 508 Known Normal Poster - check
-### Step 3: Add logic to test user paths - check
-### Step 4: To Do: Cross Reference Echo Trails for unknowns
+### Step 1: Enumerate process with forensics artifacts according to SANS 508 +
+### Step 2: Build in core processes from SANS 508 Known Normal Poster +
+### Step 3: Add logic to test user paths +
+### Step 4: Cross Reference Echo Trails for unknowns +
 ### Step 5: Add ability to toggle visibility for known / unknown / bad data
 ### Step 6: Add ability to toggle short / long data for each process
-### Step 7: Add check for parent process; remember to factor in varied
+### Step 7: Add parameter addition to script
+### Step 8: Add check for parent process; remember to factor in varied
+### Step 9: Maybe added -matches for existing services to see if named similar
+### Step 10: Add PS-Remoting
 ### Possible: In future maybe add network connection baseline?
 ### Possible: In future maybe add loaded libraries into memory?
+### Possible: In future maybe add Echo Trails to database as you query to conserve API calls?
 
-##############################################################
-##############################################################
-##############################################################
-#Define Variables starting with Echo Trails API Key 
+#############################################################
+#######################Define Variables######################
+#############################################################
+
+#Define Echo Trails API Key 
 $ETkey = "<enter-key-here>"
 
 #Note I have baselined core processes into this script and then we reach out to Echo trails if it is not in the core baseline. The if statements normalize the data.
@@ -27,16 +32,15 @@ foreach ($process in $CoreProcesses) {
         $process.UserAccount = $null
     }
 }
-#$CoreProcesses = [PSCustomObject]@{"procName"="System Idle Process";"ImagePath"=$null;"NumberofInstances"="1";"UserAccount"=$null},@{"procName"="System";"ImagePath"=$null;"NumberofInstances"="1";"UserAccount"=$null}
-##############################################################
-##############################################################
-##############################################################
+#############################################################
+#############################################################
+#############################################################
 
 
-##############################################################
-##############################################################
-##############################################################
-#Set Styles
+#############################################################
+##########Output Processes with Corresponding Style##########
+#############################################################
+
 $SetStyleProcName = "$($PSStyle.Foreground.BrightWhite)”; 
 $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)”; 
 $ResetStyle = "$($PSStyle.Reset)"
@@ -55,9 +59,74 @@ Function Set-StyleChildrenProcs {
     $retTab + "- $SetStyleProcName Process Name: $($_.Name) $ResetStyle"
     $retTab + "  $SetStyleBelow Process id: ($($_.ProcessId)) Path: ($($_.Path)) Process Instances: ($tempNum) Process Owner: ($GetOwnerUser) $ResetStyle"
 }
-##############################################################
-##############################################################
-##############################################################
+#############################################################
+#############################################################
+#############################################################
+
+
+#############################################################
+######################Echo Trails Logic######################
+#############################################################
+Function Check-EchoTrails-ChildrenProcs {
+    #Look mostly at first results for each metadata
+    $procName = 
+    $ImagePath = $results.paths[0][0]
+    $parentProc = $results.parents[0][0]
+    $NumberOfInstances #Metadata doesn't exist with Echo Trails
+    $UserAccount #Metadata doesn't exist with Echo Trails
+    
+    #The rest might be useful for expansion
+    #$childProcs = $results.children
+    #$grandParentProcs = $results.grandparents
+    #$ports = $results.network
+    #$procDescription = $results.$procDescription
+    #$procIntel = $results.intel
+
+    #Right now it only checks the image path, not # instances or the user context
+    if(($_.Path -eq $ImagePath) -or ($_.Path -contains 'C:\Users\' -and $ImagePath -contains 'C:\Users\') -or ($_.Path -contains "C:\ProgramData" -and $ImagePath -contains 'C:\ProgramData\')){
+        $SetStyleBelow = "$($PSStyle.Foreground.Green)"
+    }
+    else{
+        $SetStyleBelow = "$($PSStyle.Foreground.Red)"
+    }
+    
+    $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
+
+    $retTab + "- $SetStyleProcName Process Name: $($_.Name) $ResetStyle"
+    $retTab + "  $SetStyleBelow Process id: ($($_.ProcessId)) Path: ($($_.Path)) Process Instances: ($tempNum) Process Owner: ($GetOwnerUser) $ResetStyle"
+}
+
+Function Check-EchoTrails-RootProcs {
+    #Look mostly at first results for each metadata
+    $procName = 
+    $ImagePath = $results.paths[0][0]
+    $parentProc = $results.parents[0][0]
+    $NumberOfInstances #Metadata doesn't exist with Echo Trails
+    $UserAccount #Metadata doesn't exist with Echo Trails
+    
+    #The rest might be useful for expansion
+    #$childProcs = $results.children
+    #$grandParentProcs = $results.grandparents
+    #$ports = $results.network
+    #$procDescription = $results.$procDescription
+    #$procIntel = $results.intel
+
+    #Right now it only checks the image path, not # instances or the user context
+    if(($_.Path -eq $ImagePath) -or ($_.Path -contains 'C:\Users\' -and $ImagePath -contains 'C:\Users\') -or ($_.Path -contains "C:\ProgramData" -and $ImagePath -contains 'C:\ProgramData\')){
+        $SetStyleBelow = "$($PSStyle.Foreground.Green)"
+    }
+    else{
+        $SetStyleBelow = "$($PSStyle.Foreground.Red)"
+    }
+    
+    $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
+
+    Write-Output "- $SetStyleProcName Process Name: $($_.Name)$ResetStyle"
+    Write-Output "   $SetStyleBelow Process id: ($($_.ProcessId)) Path: ($($_.Path)) Process Instances: ($tempNum) Process Owner: ($GetOwnerUser)$ResetStyle"
+}
+#############################################################
+#############################################################
+#############################################################
 
 
 
@@ -98,13 +167,13 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             $CoreProcess = $CoreProcesses | Where-Object {$runningProc -eq $_.procName}
     
             #First Logic: Check the Path of the Executable. Note some values are null, especially root processes
-            if(($_.Path -eq $CoreProcess.ImagePath) -or ($_.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\')){
+            if(($_.Path -eq $CoreProcess.ImagePath) -or ($_.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($_.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
                 
                 if (($CoreProcess.NumberOfInstances -eq 1 -and $tempNum -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
 
                     #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                     if (($CoreProcess.UserAccount -eq "MULTIPLE") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $GetOwnerUser -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and $GetOwnerUser -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and $GetOwnerUser -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and $GetOwnerUser -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
-                        
+
                         $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
                         Set-StyleChildrenProcs(($($_.ProcessId)),($($_.Path)),($tempNum),($GetOwnerUser))
                     }
@@ -122,7 +191,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             }
             else{
                 #First check if the value was null or the path starts with ProgramData
-                if(($_.Path -eq $null) -or ($_.Path -contains "C:\ProgramData")){
+                if(($_.Path -eq $null)){
                     $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
                     $SetStyleBelow
                     Write-Host("Expected a Path but our query returned a null value")
@@ -135,13 +204,21 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             }
         }
         else{
-        #Test Echo Trails
-        #$tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
-        #$results = Invoke-WebRequest -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
-        #$results.Content[0] did not work
-    
-        $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-        Set-StyleChildrenProcs(($($_.ProcessId)),($($_.Path)),($tempNum),($GetOwnerUser))
+            #Test Echo Trails
+            $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
+            $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
+
+            if ($results){
+                Check-EchoTrails-ChildrenProcs(($($results)),($($_.ProcessId)),($($_.Path)),($tempNum),($GetOwnerUser))
+                $results = $null
+            }
+
+            else{
+                #White Indicates No Baseline Data
+                $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+                Set-StyleChildrenProcs(($($_.ProcessId)),($($_.Path)),($tempNum),($GetOwnerUser))
+            }
+
         }
         
         Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth $newDepth
@@ -171,7 +248,7 @@ $rootParents | ForEach-Object {
         $CoreProcess = $CoreProcesses | Where-Object {$runningProc -eq $_.procName}
 
         #First Logic: Check the Path of the Executable. Note some values are null, especially root processes
-        if($_.Path -eq $CoreProcess.ImagePath){
+        if(($_.Path -eq $CoreProcess.ImagePath) -or ($_.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($_.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
             
             if (($CoreProcess.NumberOfInstances -eq 1 -and $tempNum -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
 
@@ -207,13 +284,20 @@ $rootParents | ForEach-Object {
         }
     }
     else{
-    #Test Echo Trails
-    #$tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
-    #$results = Invoke-WebRequest -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
-    #$results.Content[0] did not work
+        #Test Echo Trails
+        $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
+        $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
 
-    $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-    Set-StyleRootProcs(($($_.ProcessId)),($($_.Path)),($tempNum),($GetOwnerUser))
+        if ($results){
+            Check-EchoTrails-RootProcs(($($results)),($($_.ProcessId)),($($_.Path)),($tempNum),($GetOwnerUser))
+            $results = $null
+        }
+
+        else{
+            #White Indicates No Baseline Data
+            $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+            Set-StyleRootProcs(($($_.ProcessId)),($($_.Path)),($tempNum),($GetOwnerUser))
+        }
+
     }
-    
 }
