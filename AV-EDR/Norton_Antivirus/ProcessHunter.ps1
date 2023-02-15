@@ -8,7 +8,7 @@
 ##############################################################
 ##############################################################
 #Define Variables starting with Echo Trails API Key 
-$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
+$ETkey = "<enter-key-here>"
 #Note I have baselined core processes into this script and then we reach out to Echo trails if it is not in the core baseline. The if statements normalize the data
 $CoreProcesses = Import-Csv -Path CoreProcessesBaseline.csv
 foreach ($process in $CoreProcesses) {
