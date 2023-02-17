@@ -7,16 +7,16 @@
 ### Step 7: Clean up & future proof variables being passed between functions +
 ### Step 8: Add check for parent process; figure out logic to parse multiple parents +
 ### Step 9: Logic for when Echo Trails doesn't recognize a process +
-### Step 10: Add reasons for failures
-### Step 11: Logic for when Echo Trails API key runs out or doesnt work
-### Step 12: Maybe added -matches for existing services to see if named similar
+### Step 10: Hamming Frequency analysis to look for similar naming +
+### Step 11: Add reasons for failures ; ANOMOLOUS DATA OUTPUT ISSUE
+### Step 12: Logic for when Echo Trails API key runs out or doesnt work
 ### Step 13: Add PS-Remoting
 ### Step 14: After PS-Remoting, add host to Output Results
 ### Possible: After PS-Remoting add Long Tail analysis to anomalous results?
-### Possible: Add freq.py / day 4 functionality?
+### Possible: Add freq.py / gravejester / day 4 functionality for other frequ analysis?
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
 ### Possible: In future maybe add ability to download latest application definitions?
-### Possible: In future maybe add network connection baseline? - Lab4.3 might be good reference
+### Possible: In future maybe add network connection baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future maybe add loaded libraries into memory?
 ### Definitely: Add module for Sigma hunting
 ### Possible: Add Get-ProcessMitigation <app> info (b4p23)?
@@ -24,9 +24,13 @@
 #############################################################
 #######################Define Variables######################
 #############################################################
+#Import HammingScore Function for name masquerading
+# https://github.com/gravejester/Communary.PASM
+$HammingScoreTolerance = 2 #Tune our Hamming score output
+. ./FuzzyCheck/Get-HammingDistance.ps1
 
 #Define Echo Trails API Key 
-$ETkey = "<enter-key-here>"
+$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
 
 #Create / Clear our output files
 $goodfile = './output/processHunting/good.csv'
@@ -41,6 +45,7 @@ New-Item -ItemType File -Path $fullDataNotReturned -Force | Out-Null
 
 #Keep track of current running Proc looking at
 $RunningProcess
+$Process
 $reason
 $MultipleParentTest = $false
 #Import the CSV and normalize the data, for now null & multiple values in a cell
@@ -83,24 +88,25 @@ foreach ($process in $CoreProcesses) {
 Function Append-CSV {
     $csvfile
     #Processes matching baseline and unknowns have regular minimal data
-    if (($whichfile -eq $goodfile) -or ($whichfile -eq $unknownfile)){
+    if (($whichfile -eq $goodfile)){
         $csvfile = [PSCustomObject]@{
-            ProcessName = $_.Name
-            ProcessId = $_.ProcessId
+            ProcessName = $RunningProcess.Name
+            ProcessId = $RunningProcess.ProcessId
             Path = $RunningProcess.Path
-            NumberOfInstances = $tempNum
+            NumberOfInstances = $RunningProcess.NumberOfInstances
             UserAccount = $RunningProcess.Owner
+            Reason = $reason
         }
     }
     #Processes without full data include a reason column
-    elseif ($whichfile -eq $fullDataNotReturned) {
+    elseif (($whichfile -eq $fullDataNotReturned) -or ($whichfile -eq $unknownfile)) {
         $csvfile = [PSCustomObject]@{
-            ProcessName = $_.Name
-            ProcessId = $_.ProcessId
+            ProcessName = $RunningProcess.Name
+            ProcessId = $RunningProcess.ProcessId
             Path = $RunningProcess.Path
             ParentProcessId = $RunningProcess.ParentProcessID
             ParentProcess = $RunningProcess.ParentProcess
-            NumberOfInstances = $tempNum
+            NumberOfInstances = $RunningProcess.NumberOfInstances
             UserAccount = $RunningProcess.Owner
             Reason = $reason
         }
@@ -108,15 +114,15 @@ Function Append-CSV {
     #Anomalous processes
     elseif ($whichfile -eq $anomalousfile) {
         $csvfile = [PSCustomObject]@{
-            ProcessName = $_.Name
+            ProcessName = $RunningProcess.Name
             ExpectedProcessName = $CoreProcess.procName
-            ProcessId = $_.ProcessId
+            ProcessId = $RunningProcess.ProcessId
             Path = $RunningProcess.Path
             ExpectedPath = $CoreProcess.ImagePath
             ParentProcessId = $RunningProcess.ParentProcessID
             ParentProcess = $RunningProcess.ParentProcess
             ExpectedParent = $CoreProcess.parentProc
-            NumberOfInstances = $tempNum
+            NumberOfInstances = $RunningProcess.NumberOfInstances
             ExpectedNumberofInstances = $CoreProcess.NumberOfInstances
             UserAccount = $RunningProcess.Owner
             ExpectedUserAccount = $CoreProcess.UserAccount
@@ -137,13 +143,14 @@ Function Append-CSV-EchoTrails {
 
         $csvfile = [PSCustomObject]@{
             ProcessName = $RunningProcess.Name
-            ProcessId = $_.ProcessId
+            ExpectedProcessName = $RunningProcess.Name
+            ProcessId = $RunningProcess.ProcessId
             Path = $RunningProcess.Path
             ExpectedPath =  $results.paths[0][0] + "\" + $RunningProcess.Name
             ParentProcessId = $RunningProcess.ParentProcessID
             ParentProcess = $RunningProcess.ParentProcess
             ExpectedParent = $results.parents[0][0]
-            NumberOfInstances = $tempNum
+            NumberOfInstances = $RunningProcess.NumberOfInstances
             ExpectedNumberofInstances = "ET doesn't have this data"
             UserAccount = $RunningProcess.Owner
             ExpectedUserAccount = "ET doesn't have this data"
@@ -152,6 +159,24 @@ Function Append-CSV-EchoTrails {
             ExpectedPorts = $results.network
             Reason = $reason
             Notes = $results.$intel
+        }
+    
+    $csvfile | Export-CSV $whichfile -Force –Append
+}
+
+Function Append-CSV-NameFreqAnalysis {
+    #Processes matching baseline and unknowns have regular minimal data
+
+        $csvfile = [PSCustomObject]@{
+            ProcessName = $RunningProcess.Name
+            ExpectedProcessName = $StringCoreProcName
+            ProcessId = $RunningProcess.ProcessId
+            Path = $RunningProcess.Path
+            ParentProcessId = $RunningProcess.ParentProcessID
+            ParentProcess = $RunningProcess.ParentProcess
+            NumberOfInstances = $RunningProcess.NumberOfInstances
+            UserAccount = $RunningProcess.Owner
+            Reason = $reason
         }
     
     $csvfile | Export-CSV $whichfile -Force –Append
@@ -172,14 +197,14 @@ Function Set-StyleRootProcs {
         $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
 
         Write-Output "- $SetStyleProcName Name: $($_.Name)$ResetStyle"
-        Write-Output "   $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($tempNum) Process Owner: ($($RunningProcess.Owner))$ResetStyle"
+        Write-Output "   $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($($RunningProcess.NumberOfInstances)) Process Owner: ($($RunningProcess.Owner))$ResetStyle"
         Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
 }
 
 Function Set-StyleChildrenProcs {
         $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
         $retTab + "- $SetStyleProcName Name: $($_.Name) $ResetStyle"
-        $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($tempNum) Process Owner: ($($RunningProcess.Owner)) $ResetStyle"
+        $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($($RunningProcess.NumberOfInstances)) Process Owner: ($($RunningProcess.Owner)) $ResetStyle"
 }
 #############################################################
 #############################################################
@@ -199,7 +224,7 @@ Function Check-EchoTrails-ChildrenProcs {
             $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
 
             $retTab + "- $SetStyleProcName Name: $($_.Name) $ResetStyle"
-            $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($tempNum) Owner: ($($RunningProcess.Owner)) $ResetStyle"
+            $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner)) $ResetStyle"
 
             #Add to file
             $whichfile = $goodfile
@@ -210,7 +235,7 @@ Function Check-EchoTrails-ChildrenProcs {
             $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
 
             $retTab + "- $SetStyleProcName Name: $($_.Name) $ResetStyle"
-            $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($tempNum) Owner: ($($RunningProcess.Owner)) $ResetStyle"
+            $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner)) $ResetStyle"
 
             #Add to file
             $whichfile = $anomalousfile
@@ -241,8 +266,38 @@ Function Check-EchoTrails-RootProcs {
     $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
 
     Write-Output "- $SetStyleProcName Name: $($_.Name)$ResetStyle"
-    Write-Output "   $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($tempNum) Owner: ($($RunningProcess.Owner))$ResetStyle"
+    Write-Output "   $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner))$ResetStyle"
     Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
+}
+#############################################################
+#############################################################
+#############################################################
+
+#############################################################
+######################Frequency Analysis#####################
+#############################################################
+Function Hamming-Analysis {
+    #Processes matching baseline and unknowns have regular minimal data
+    foreach($line in $CoreProcesses){
+        $StringCoreProcName = [string]$line.procName
+        $StringRunProcName = [string]$RunningProcess.Name
+        $HammingScore = Get-HammingDistance $StringRunProcName $StringCoreProcName
+        if ($HammingScore -le $HammingScoreTolerance){
+            $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+            $SetStyleBelow
+            $reason = "Very Similar to other host name"
+            $reason
+                            
+            $whichfile = $anomalousfile
+            Append-CSV-NameFreqAnalysis($StringCoreProcName)
+            if($parentvschild = "child"){
+                Set-StyleChildrenProcs
+            }
+            else{
+                Set-StyleChildrenProcs
+            } 
+        }
+    }
 }
 #############################################################
 #############################################################
@@ -267,12 +322,12 @@ Function Get-RootParentProcess {
 
 Function Get-ChildProcesses { #Return all child processes for a given process
     Param($process,$allProcesses,$depth)
-    $reason = ""
     $retTab = "  "*$depth
     $children = $allProcesses | Where-Object {($_.ParentProcessId -eq $process.ProcessId) -and ($_.ProcessId -ne $process.ProcessId)} | Select-Object -Property Name,ProcessId,ParentProcessId,Path -Unique
 
     $children | ForEach-Object {
-        
+    
+    $reason = ""
     $Process = Get-CimInstance Win32_Process -Filter "name = `'$($_.Name)`'"
     $tempNum = [string]$Process.count
     
@@ -322,7 +377,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 }
 
                 if(($CoreProcess.ParentProc -eq "MULTIPLE") -or ($RunningProcess.ParentProcess -eq $CoreProcess.ParentProc) -or ($MultipleParentMatch)){
-                    if (($CoreProcess.NumberOfInstances -eq 1 -and $tempNum -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
+                    if (($CoreProcess.NumberOfInstances -eq 1 -and $RunningProcess.NumberOfInstances -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
                         #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                         if (($CoreProcess.UserAccount -eq "MULTIPLE") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
                             $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
@@ -375,6 +430,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 else{
                     $reason = "Paths did not match"
                     $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+                    $SetStyleBelow
                     $reason
                     Set-StyleChildrenProcs
 
@@ -384,21 +440,17 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 }
             }
         }
-
-        #Before checking Echo Trails let's see if it's named similar to something known
-        #$StringCoreProcName = [string]$CoreProcesses.procName
-        #elseif ([string]($($_.Name)) -like "svchost"){
-        #    Write-Host("Simple test")
-            #Write-Host("Similar Name Match Successful")
-        #}
-
         #else for if($_.Name -in $CoreProcesses.procName)
         else{
+
+            #Before checking Echo Trails, analyze name frequency against baseline procs
+            $parentvschild = "child"
+            Hamming-Analysis($parentvschild)
+
             #Test Echo Trails
             $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
             $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
 
-            $results
             if($results.message -match "EchoTrail has never observed"){
                 $reason = "Echo trails does not have this in the database"
                 $reason
@@ -417,7 +469,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             }
 
             else{
-                    $reason = "Unknown"
+                    $reason = "No baseline data"
                     #White Indicates No Baseline Data
                     $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
                     Set-StyleChildrenProcs
@@ -473,7 +525,7 @@ $rootParents | ForEach-Object {
 
         #First Logic: Check the Path of the Executable. Note some values are null, especially root processes
         if(($RunningProcess.Path -eq $CoreProcess.ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
-            if (($CoreProcess.NumberOfInstances -eq 1 -and $tempNum -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
+            if (($CoreProcess.NumberOfInstances -eq 1 -and $RunningProcess.NumberOfInstances -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
 
                 #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                 if (($CoreProcess.UserAccount -eq "MULTIPLE") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
@@ -485,8 +537,9 @@ $rootParents | ForEach-Object {
                         Append-CSV
                 }
                 else{
-                        $reason = "User context did not match"
                         $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+                        $SetStyleBelow
+                        $reason = "User context did not match"
                         $reason
                         Set-StyleRootProcs
                         
@@ -497,8 +550,9 @@ $rootParents | ForEach-Object {
 
             }
             else{
-                    $reason = "Number of instances did not match"
                     $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+                    $SetStyleBelow
+                    $reason = "Number of instances did not match"
                     $reason
                     Set-StyleRootProcs
 
@@ -512,6 +566,7 @@ $rootParents | ForEach-Object {
             #First check if the value was null
             if($RunningProcess.Path -eq $null){
                 $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
+                $SetStyleBelow
                 $reason = "Expected a Path but our query returned a null value"
                 $reason
                 Set-StyleRootProcs
@@ -522,8 +577,9 @@ $rootParents | ForEach-Object {
             }
 
             else{
-                    $reason = "Paths did not match"
                     $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+                    $SetStyleBelow
+                    $reason = "Paths did not match"
                     $reason
                     Set-StyleRootProcs
 
@@ -534,6 +590,11 @@ $rootParents | ForEach-Object {
         }
     }
     else{
+
+        #Before checking Echo Trails, analyze name frequency against baseline procs
+        $parentvschild = "parent"
+        Hamming-Analysis($parentvschild)
+
         #Test Echo Trails
         $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
         $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
@@ -556,10 +617,10 @@ $rootParents | ForEach-Object {
         }
 
         else{
-                $reason = "Unknown"
                 #White Indicates No Baseline Data
                 $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
                 Set-StyleTootProcs
+                $reason = "No baseline data"
             
                 #Add to file
                 $whichfile = $unknownfile
