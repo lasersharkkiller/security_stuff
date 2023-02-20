@@ -8,7 +8,7 @@
 ### Step 8: Add check for parent process; figure out logic to parse multiple parents +
 ### Step 9: Logic for when Echo Trails doesn't recognize a process +
 ### Step 10: Hamming Frequency analysis to look for similar naming +
-### Step 11: Add reasons for failures ; ANOMOLOUS DATA OUTPUT ISSUE
+### Step 11: Add reasons for failures +
 ### Step 12: Logic for when Echo Trails API key runs out or doesnt work
 ### Step 13: Add PS-Remoting
 ### Step 14: After PS-Remoting, add host to Output Results
@@ -140,6 +140,12 @@ Function Append-CSV {
 
 Function Append-CSV-EchoTrails {
     #Processes matching baseline and unknowns have regular minimal data
+Write-Output("Children:")
+$results.children
+Write-Output("grandparents:")
+$results.grandparents
+Write-Output("network conns:")
+$results.network
 
         $csvfile = [PSCustomObject]@{
             ProcessName = $RunningProcess.Name
@@ -154,9 +160,9 @@ Function Append-CSV-EchoTrails {
             ExpectedNumberofInstances = "ET doesn't have this data"
             UserAccount = $RunningProcess.Owner
             ExpectedUserAccount = "ET doesn't have this data"
-            ExpectedChildProcs = $results.children
-            ExpectedGrandParentProcs = $results.grandparents
-            ExpectedPorts = $results.network
+            ExpectedChildProcs = ($results.children | Select-Object | Out-String)
+            ExpectedGrandParentProcs = ($results.grandparents | Select-Object | Out-String)
+            ExpectedPorts = ($results.network | Select-Object | Out-String)
             Reason = $reason
             Notes = $results.$intel
         }
@@ -166,7 +172,7 @@ Function Append-CSV-EchoTrails {
 
 Function Append-CSV-NameFreqAnalysis {
     #Processes matching baseline and unknowns have regular minimal data
-
+        
         $csvfile = [PSCustomObject]@{
             ProcessName = $RunningProcess.Name
             ExpectedProcessName = $StringCoreProcName
