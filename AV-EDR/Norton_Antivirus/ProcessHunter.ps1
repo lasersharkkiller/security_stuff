@@ -9,13 +9,13 @@
 ### Step 9: Logic for when Echo Trails doesn't recognize a process +
 ### Step 10: Hamming Frequency analysis to look for similar naming +
 ### Step 11: Add reasons for failures +
-### Step 12: Logic for when Echo Trails API key runs out or doesnt work
-### Step 13: Add PS-Remoting
-### Step 14: After PS-Remoting, add host to Output Results
+### Step 12: Ability to download latest application definitions +
+### Step 13: Logic for when Echo Trails API key runs out or doesnt work
+### Step 14: Add PS-Remoting
+### Step 15: After PS-Remoting, add host to Output Results
 ### Possible: After PS-Remoting add Long Tail analysis to anomalous results?
 ### Possible: Add freq.py / gravejester / day 4 functionality for other frequ analysis?
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
-### Possible: In future maybe add ability to download latest application definitions?
 ### Possible: In future maybe add network connection baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future maybe add loaded libraries into memory?
 ### Definitely: Add module for Sigma hunting
@@ -28,6 +28,12 @@
 # https://github.com/gravejester/Communary.PASM
 $HammingScoreTolerance = 2 #Tune our Hamming score output
 . ./FuzzyCheck/Get-HammingDistance.ps1
+
+#Ability to import the latest definitions from GitHub:
+$PullLatestBaseline = $false
+if ($PullLatestBaseline){
+    Copy-Item -path 'https://github.com/cyb3rpanda/Threat-Hunter/blob/main/CoreProcessesBaseline.csv' -Destination 'CoreProcessesBaseline.csv' -Force
+}
 
 #Define Echo Trails API Key 
 $ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
