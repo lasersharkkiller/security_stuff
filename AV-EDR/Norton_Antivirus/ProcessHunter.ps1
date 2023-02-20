@@ -14,12 +14,13 @@
 ### Step 14: Add PS-Remoting
 ### Step 15: After PS-Remoting, add host to Output Results
 ### Possible: After PS-Remoting add Long Tail analysis to anomalous results?
-### Possible: Add freq.py / gravejester / day 4 functionality for other frequ analysis?
+### Possible: Add freq.py / gravejester / day 4 functionality for other freq analysis?
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
 ### Possible: In future maybe add network connection baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future maybe add loaded libraries into memory?
 ### Definitely: Add module for Sigma hunting
 ### Possible: Add Get-ProcessMitigation <app> info (b4p23)?
+### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
 
 #############################################################
 #######################Define Variables######################
@@ -32,7 +33,7 @@ $HammingScoreTolerance = 2 #Tune our Hamming score output
 #Ability to import the latest definitions from GitHub:
 $PullLatestBaseline = $false
 if ($PullLatestBaseline){
-    Copy-Item -path 'https://github.com/cyb3rpanda/Threat-Hunter/blob/main/CoreProcessesBaseline.csv' -Destination 'CoreProcessesBaseline.csv' -Force
+    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/CoreProcessesBaseline.csv' -OutFile 'CoreProcessesBaseline.csv'
 }
 
 #Define Echo Trails API Key 
