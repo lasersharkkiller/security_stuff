@@ -15,7 +15,7 @@
 ### Step 15: Logic for when Echo Trails API key runs out or doesnt work
 ### Step 16: Add PS-Remoting
 ### Step 17: After PS-Remoting, add host to Output Results
-### Possible: After PS-Remoting add Long Tail analysis to anomalous results?
+### Possible: After PS-Remoting add Long Tail analysis to anomalous results? or leave to Kansa?
 ### Possible: Add freq.py / gravejester / day 4 functionality for other freq analysis?
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
 ### Possible: In future maybe add network connection baseline? - Lab4.3 might be good reference; also lab5.2
@@ -43,7 +43,7 @@ if ($PullLatestBaseline){
 }
 
 #Define Echo Trails API Key 
-$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
+$ETkey = "<enter-api-key-here>"
 
 #Create / Clear our output files
 $goodfile = './output/processHunting/good.csv'
@@ -151,6 +151,9 @@ Function Append-CSV {
             Reason              = $reason
             Notes               = $intel
         }
+    }
+    else{
+        break
     }
     
     $csvfile | Export-CSV $whichfile -Force –Append
@@ -379,7 +382,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             $CoreProcess = $CoreProcesses | Where-Object {$runningProc -eq $_.procName}
     
             #First Logic: Check the Path of the Executable. Note some values are null, especially root processes
-            if(($RunningProcess.Path -eq $CoreProcess.ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
+            if(($CoreProcess.ImagePath -eq "MULTIPLE") -or ($RunningProcess.Path -eq $CoreProcess.ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
 
                 #Loop through values, using $MultipleParentMatch to pass to next if
                 $MultipleParentMatch = $false
@@ -399,7 +402,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 if(($CoreProcess.ParentProc -eq "MULTIPLE") -or ($RunningProcess.ParentProcess -eq $CoreProcess.ParentProc) -or ($MultipleParentMatch)){
                     if (($CoreProcess.NumberOfInstances -eq 1 -and $RunningProcess.NumberOfInstances -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
                         #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
-                        if (($CoreProcess.UserAccount -eq "MULTIPLE") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
+                        if (($CoreProcess.UserAccount -eq "MULTIPLE" -or $CoreProcess.UserAccount -eq "HOST") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
                             $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
                             Set-StyleChildrenProcs
                             #Add to file
@@ -409,6 +412,8 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                         else{
                             $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                             Set-StyleChildrenProcs
+                            $reason = "Different User Context than expected"
+                            $reason
                             #Add to file
                             $whichfile = $anomalousfile
                             Append-CSV
@@ -545,13 +550,13 @@ $rootParents | ForEach-Object {
         $CoreProcess = $CoreProcesses | Where-Object {$runningProc -eq $_.procName}
 
         #First Logic: Check the Path of the Executable. Note some values are null, especially root processes
-        if(($RunningProcess.Path -eq $CoreProcess.ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
+        if(($CoreProcess.ImagePath -eq "MULTIPLE") -or ($RunningProcess.Path -eq $CoreProcess.ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
             if (($CoreProcess.NumberOfInstances -eq 1 -and $RunningProcess.NumberOfInstances -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
 
                 #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                 if (($CoreProcess.UserAccount -eq "MULTIPLE") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
                         $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
-                        Set-StyleRootProcs
+                        $whichfile = $goodfile
 
                         ###Check all loaded DLLs per proc against baseline data; note DLL baseline location separate function
                         if($CoreProcess.LoadedDlls -eq $null){
@@ -563,9 +568,6 @@ $rootParents | ForEach-Object {
                             $CoreProcess.LoadedDlls = $CoreProcess.LoadedDlls.split(",")
                             
                             foreach ($loadedDLL in $processModules.modules.ModuleName){
-                                #if ($loadedDLL -eq $processModules.modules.ModuleName[0]){
-                                    
-                                #}
                                 if ($loadedDLL -in $CoreProcess.LoadedDlls){
 
                                 }
@@ -573,21 +575,18 @@ $rootParents | ForEach-Object {
                                     $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                                     $SetStyleBelow
                                     $reason += "($($loadedDLL)) is NOT in the DLL baseline list "
-                                    $reason
                                     $whichfile = $anomalousfile
-                                    Append-CSV
+                                    
                                 }
-                            }
+                            } $reason
                         }
-
-                        #Add to file
-                        $whichfile = $goodfile
                         Append-CSV
+                        Set-StyleRootProcs
                 }
                 else{
                         $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                         $SetStyleBelow
-                        $reason = "User context did not match"
+                        $reason = "Different User Context than expected"
                         $reason
                         Set-StyleRootProcs
                         
