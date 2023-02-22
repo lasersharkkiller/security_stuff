@@ -10,18 +10,19 @@
 ### Step 10: Hamming Frequency analysis to look for similar naming +
 ### Step 11: Add reasons for failures +
 ### Step 12: Ability to download latest application definitions +
-### Step 13: Add DLL baselining for applications
+### Step 13: Add DLL baselining for applications +
 ### Step 14: ADD SEPARATE FUNCTION CHECK: $processModules.modules.FileName  ###SANS 508 b1.p76 
+###          Maybe add logic for services that should run as user that run as something else?
 ### Step 15: Logic for when Echo Trails API key runs out or doesnt work
 ### Step 16: Add PS-Remoting
 ### Step 17: After PS-Remoting, add host to Output Results
-### Possible: After PS-Remoting add Long Tail analysis to anomalous results? or leave to Kansa?
+### Step 18: Add module for Sigma hunting
+### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
 ### Possible: Add freq.py / gravejester / day 4 functionality for other freq analysis?
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
 ### Possible: In future maybe add network connection baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future maybe add loaded libraries into memory?
 ### Possible: In future add to memory hunting
-### Definitely: Add module for Sigma hunting
 ### Possible: Add Get-ProcessMitigation <app> info (b4p23)?
 ### Possible: Add prefetch to service baselining, but note only covers first 10 seconds of execution
 ### Possible: Eric Zimmerman says scheduled tasks and new services are the place to look, perhaps add analysis module?
@@ -43,7 +44,7 @@ if ($PullLatestBaseline){
 }
 
 #Define Echo Trails API Key 
-$ETkey = "<enter-api-key-here>"
+$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
 
 #Create / Clear our output files
 $goodfile = './output/processHunting/good.csv'
@@ -404,10 +405,35 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                         #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                         if (($CoreProcess.UserAccount -eq "MULTIPLE" -or $CoreProcess.UserAccount -eq "HOST") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
                             $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
-                            Set-StyleChildrenProcs
-                            #Add to file
                             $whichfile = $goodfile
-                            Append-CSV
+
+                            ###Check all loaded DLLs per proc against baseline data; note DLL baseline location separate function
+                            if($CoreProcess.LoadedDlls -eq $null){
+                                #Write-Host("($($RunningProcess.Name)) baseline loaded dlls has a null value")
+                            }
+                            elseif($CoreProcess.LoadedDlls -eq "MULTIPLE"){
+                                #NOT Baselineable, like svchost
+                            }
+                            else{
+                                $processModules = Get-Process -Id $RunningProcess.ProcessID|select modules
+                                $CoreProcess.LoadedDlls = $CoreProcess.LoadedDlls.split(",")
+                            
+                                foreach ($loadedDLL in $processModules.modules.ModuleName){
+                                    if ($loadedDLL -in $CoreProcess.LoadedDlls){
+
+                                    }
+                                    else{
+                                        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+                                        $SetStyleBelow
+                                        $reason += "($($loadedDLL)) is NOT in the DLL baseline list "
+                                        Write-Host("$($loadedDLL),")
+                                        $whichfile = $anomalousfile
+                                    }
+                            } #$reason
+                        }
+                        Append-CSV
+                        Set-StyleChildrenProcs
+
                         }
                         else{
                             $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
@@ -570,6 +596,9 @@ $rootParents | ForEach-Object {
                             foreach ($loadedDLL in $processModules.modules.ModuleName){
                                 if ($loadedDLL -in $CoreProcess.LoadedDlls){
 
+                                }
+                                elseif($CoreProcess.LoadedDlls -eq "MULTIPLE"){
+                                    #NOT Baselineable, like svchost
                                 }
                                 else{
                                     $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
