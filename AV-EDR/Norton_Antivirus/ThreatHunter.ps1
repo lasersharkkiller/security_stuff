@@ -17,17 +17,19 @@
 ### Step 16: Add PS-Remoting
 ### Step 17: After PS-Remoting, add host to Output Results
 ### Step 18: Add module for Sigma hunting
+### Step 19: Traditional AV functionality (Hash -> VT)
+### Step 20: Restructure Output to group based on Anomaly types
 ### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
-### Possible: Add freq.py / gravejester / day 4 functionality for other freq analysis?
+###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? freq.py? gravejester - PS
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
-### Possible: In future maybe add network connection baseline? - Lab4.3 might be good reference; also lab5.2
-### Possible: In future maybe add loaded libraries into memory?
+### Possible: In future maybe add non-ephemeral network ports baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future add to memory hunting
-### Possible: Add Get-ProcessMitigation <app> info (b4p23)?
-### Possible: Add prefetch to service baselining, but note only covers first 10 seconds of execution
+### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
 ### Possible: Eric Zimmerman says scheduled tasks and new services are the place to look, perhaps add analysis module?
 ### Possible: forensics b1p60 common malware names & locations
 ### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
+### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1)
+### Possible: Analyze shimcache with same anomaly logic? (508 Lab 2.1)
 
 #############################################################
 #######################Define Variables######################
@@ -40,7 +42,7 @@ $HammingScoreTolerance = 2 #Tune our Hamming score output
 #Ability to import the latest definitions from GitHub:
 $PullLatestBaseline = $false
 if ($PullLatestBaseline){
-    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/CoreProcessesBaseline.csv' -OutFile 'CoreProcessesBaseline.csv'
+    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/CoreProcessesBaseline.csv' -OutFile './baselines/CoreProcessesBaseline.csv'
 }
 
 #Define Echo Trails API Key 
@@ -64,7 +66,7 @@ $loadedDLL = ""
 $reason
 $MultipleParentTest = $false
 #Import the CSV and normalize the data, for now null & multiple values in a cell
-$CoreProcesses = Import-Csv -Path CoreProcessesBaseline.csv
+$CoreProcesses = Import-Csv -Path ./baselines/CoreProcessesBaseline.csv
 foreach ($process in $CoreProcesses) {
 
     if (($process.ImagePath -eq "null") -or ($process.ImagePath -eq "")){
@@ -326,6 +328,29 @@ Function Hamming-Analysis {
 #############################################################
 
 
+#############################################################
+#####################DLL General Baseline####################
+#############################################################
+Function DLL-Baseline {
+    $FullDlls = Get-Process | Select-Object -ExpandProperty Modules | Select-Object FileName
+    foreach($FullDll in $FullDlls){
+        $currentDLL = Get-ChildItem $FullDll.FileName | Get-AuthenticodeSignature | ` Select-Object -Property Path,ISOSBinary,SignatureType,Status, ` @{Expression={($_.SignerCertificate.Subject)}}, ` @{Expression={($_.SignerCertificate.Issuer)}}, ` @{Expression={($_.SignerCertificate.SerialNumber)}}, ` @{Expression={($_.SignerCertificate.NotBefore)}}, ` @{Expression={($_.SignerCertificate.NotAfter)}}, ` @{Expression={($_.SignerCertificate.ThumbPrint)}}
+    
+        #Analyze against baseline DLLs - check dll against directory
+
+        #Look for blank fields?
+        #Where-Object {$_.Status -ne "Valid"}
+
+        #Look for unsigned?
+
+        #List of Issuers?
+    }
+}
+#############################################################
+#############################################################
+#############################################################
+
+
 
 Function Get-RootParentProcess {
     Param($process,$allProcesses)
@@ -429,6 +454,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                                         Write-Host("$($loadedDLL),")
                                         $whichfile = $anomalousfile
                                     }
+                                    $loadedDLL.FileName
                             } #$reason
                         }
                         Append-CSV
@@ -594,6 +620,7 @@ $rootParents | ForEach-Object {
                             $CoreProcess.LoadedDlls = $CoreProcess.LoadedDlls.split(",")
                             
                             foreach ($loadedDLL in $processModules.modules.ModuleName){
+                                #First Loop Through and See if it's in the baseline
                                 if ($loadedDLL -in $CoreProcess.LoadedDlls){
 
                                 }
