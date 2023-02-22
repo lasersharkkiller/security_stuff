@@ -26,7 +26,7 @@
 ### Possible: In future add to memory hunting
 ### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
 ### Possible: Eric Zimmerman says scheduled tasks and new services are the place to look, perhaps add analysis module?
-### Possible: forensics b1p60 common malware names & locations
+### Possible: forensics b1p60 common malware names & locations?
 ### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
 ### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1)
 ### Possible: Analyze shimcache with same anomaly logic? (508 Lab 2.1)
@@ -42,7 +42,8 @@ $HammingScoreTolerance = 2 #Tune our Hamming score output
 #Ability to import the latest definitions from GitHub:
 $PullLatestBaseline = $false
 if ($PullLatestBaseline){
-    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/CoreProcessesBaseline.csv' -OutFile './baselines/CoreProcessesBaseline.csv'
+    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/baselines/CoreProcessesBaseline.csv' -OutFile './baselines/CoreProcessesBaseline.csv'
+    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/baselines/DllBaseline.csv' -OutFile './baselines/DllBaseline.csv'
 }
 
 #Define Echo Trails API Key 
@@ -332,6 +333,7 @@ Function Hamming-Analysis {
 #####################DLL General Baseline####################
 #############################################################
 Function DLL-Baseline {
+    #Separate module to only do each unique DLL/exe once
     $FullDlls = Get-Process | Select-Object -ExpandProperty Modules | Select-Object FileName
     foreach($FullDll in $FullDlls){
         $currentDLL = Get-ChildItem $FullDll.FileName | Get-AuthenticodeSignature | ` Select-Object -Property Path,ISOSBinary,SignatureType,Status, ` @{Expression={($_.SignerCertificate.Subject)}}, ` @{Expression={($_.SignerCertificate.Issuer)}}, ` @{Expression={($_.SignerCertificate.SerialNumber)}}, ` @{Expression={($_.SignerCertificate.NotBefore)}}, ` @{Expression={($_.SignerCertificate.NotAfter)}}, ` @{Expression={($_.SignerCertificate.ThumbPrint)}}
@@ -344,6 +346,8 @@ Function DLL-Baseline {
         #Look for unsigned?
 
         #List of Issuers?
+
+        #Check size?
     }
 }
 #############################################################
