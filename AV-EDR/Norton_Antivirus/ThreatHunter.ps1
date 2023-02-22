@@ -44,7 +44,7 @@ if ($PullLatestBaseline){
 }
 
 #Define Echo Trails API Key 
-$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
+$ETkey = "<enter-api-key-here>"
 
 #Create / Clear our output files
 $goodfile = './output/processHunting/good.csv'
