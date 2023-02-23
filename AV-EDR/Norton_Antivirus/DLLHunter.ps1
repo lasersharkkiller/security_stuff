@@ -51,19 +51,19 @@ Function Hamming-Analysis {
         }
         elseif ($whichHammingAnalysis = "Subject"){
             $BaselineDLLMeta = [string]$line.Subject
-            $StringRunDLLMeta = [string]$CurrentDLL.Subject
+            $StringRunDLLMeta = [string]$CurrentDLL.SignerCertificate.Subject
         }
         elseif ($whichHammingAnalysis = "Issuer"){
             $BaselineDLLMeta = [string]$line.Issuer
-            $StringRunDLLMeta = [string]$CurrentDLL.Issuer
+            $StringRunDLLMeta = [string]$CurrentDLL.SignerCertificate.Issuer
         }
         elseif ($whichHammingAnalysis = "Serial"){
             $BaselineDLLMeta = [string]$line.Serial
-            $StringRunDLLMeta = [string]$CurrentDLL.Serial
+            $StringRunDLLMeta = [string]$CurrentDLL.SignerCertificate.Serial
         }
         elseif ($whichHammingAnalysis = "Thumbprint"){
             $BaselineDLLMeta = [string]$line.Thumbprint
-            $StringRunDLLMeta = [string]$CurrentDLL.Thumbprint
+            $StringRunDLLMeta = [string]$CurrentDLL.SignerCertificate.Thumbprint
         }
 
         #First Analyze if in current meta
@@ -101,13 +101,18 @@ Function DLL-Analysis {
     $BaselineDLL
 
     #Separate module to only do each unique DLL/exe once
+    $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
+    $SetStyleBelow
     Write-Host("Gathering Currently Loaded Dlls...")
     $CurrentDlls = Get-Process | Select-Object -ExpandProperty Modules | sort -Unique | Select-Object ModuleName,FileName,Size,Company,Description
     Write-Host("Analyzing Against Baseline...")
     foreach($CurrentDll in $CurrentDlls){
+        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+        #$SetStyleBelow
         $CurrentDllExtraMeta = Get-ChildItem $CurrentDll.FileName | Get-AuthenticodeSignature | ` Select-Object -Property ISOSBinary,SignatureType,Status,SignerCertificate
         #Analyze against baseline DLLs - Status
         if($CurrentDll.ModuleName -in $BaselineDLLs.ModuleName){
+            $reason = ""
             $BaselineDLL = $BaselineDLLs | Where-Object {$_.ModuleName -eq $CurrentDll.ModuleName}
             
             #First Check to make sure it's the same directory
@@ -121,34 +126,43 @@ Function DLL-Analysis {
                         if($CurrentDllExtraMeta.Status -eq $BaselineDLL.Status){
                         }
                         else{
+                            $SetStyleBelow
                             $reason = "$($CurrentDllExtraMeta.Status) was not the same status as our baseline."
                             $reason
                         }
                     }
                     #Else Company did not match
                     else{
+                        $SetStyleBelow
                         $reason = "$($CurrentDll.Company) was not the same size as our baseline. The company did not match"
                         $reason
                     }
                 }
                 #Else we failed the Size Check
                 else{
+                    $SetStyleBelow
                     $reason = "$($CurrentDll.ModuleName) was not the same size as our baseline. Some malware appends to the end of legitamite signed DLLs."
                     $reason
                 }
             }
             #Else the DLL matched but it failed the directory check
             else{
+                $SetStyleBelow
                 $reason = "$($CurrentDll.FileName) was in the baseline list but didn't match the directory $($BaselineDLL.FileName)."
                 $reason
             }
         }
         #If $CurrentDll.ModuleName -notin $BaselineDLLs.ModuleName look for various indicators
         else{
+            $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+            $SetStyleBelow
+            $reason = "$($CurrentDll.ModuleName) Not in our baseline."
+            $reason
+            $reason = "$($CurrentDll.ModuleName) Not in our baseline. Possible indicators: "
+
             #Invalid certs
             if([string]$CurrentDll.Status -ne "Valid"){
-                $reason = "Not a valid certificate and DLL not in baseline"
-                $reason
+                $reason = "Not a valid certificate. "
             }
 
             #Maybe combine with check for null values
@@ -159,59 +173,50 @@ Function DLL-Analysis {
             Hamming-Analysis($CurrentDll,$CurrentDllExtraMeta,$BaselineDLL,$WhichOne)
 
             if ($CurrentDll.Company -eq $null){
-                $reason = "Company info is null"
-                $CurrentDLL.ModuleName
-                $reason
+                $reason += "Company info is null. "
             }
             else{
                 $CheckThisLength = $CurrentDLL.ModuleName.Length
-                $CurrentDLL.ModuleName
                 $WhichOne = "Company"
                 Length-Analysis($CheckThisLength,$WhichOne)
                 Hamming-Analysis($CurrentDll,$CurrentDllExtraMeta,$BaselineDLL,$WhichOne)
             }
             
-            if ($CurrentDllExtraMeta.Subject -eq $null){
-                $CurrentDLL.ModuleName
-                $reason = "Subject info is null"
-                $reason
+            if ($CurrentDllExtraMeta.SignerCertificate.Subject -eq $null){
+                $reason += "Subject info is null. "
             }
             else{
-                $CheckThisLength = $CurrentDllExtraMeta.Subject.Length
-                $CurrentDLL.ModuleName
+                $CheckThisLength = $CurrentDllExtraMeta.SignerCertificate.Subject.Length
                 $WhichOne = "Subject"
                 Length-Analysis($CheckThisLength,$WhichOne)
                 Hamming-Analysis($CurrentDll,$CurrentDllExtraMeta,$BaselineDLL,$WhichOne)
             }
 
-            if ($CurrentDllExtraMeta.Issuer -eq $null){
-                $reason = "Issuer info is null"
-                $reason
+            if ($CurrentDllExtraMeta.SignerCertificate.Issuer -eq $null){
+                $reason += "Issuer info is null. "
             }
             else{
-                $CurrentDllExtraMeta = $CurrentDLL.CurrentDllExtraMeta.Length
+                $CurrentDllExtraMeta = $CurrentDLL.CurrentDllExtraMeta.SignerCertificate.Issuer.Length
                 $WhichOne = "Issuer"
                 Length-Analysis($CheckThisLength,$WhichOne)
                 Hamming-Analysis($CurrentDll,$CurrentDllExtraMeta,$BaselineDLL,$WhichOne)
             }
 
-            if ($CurrentDllExtraMeta.Serial -eq $null){
-                $reason = "Serial info is null"
-                $reason
+            if ($CurrentDllExtraMeta.SignerCertificate.Serial -eq $null){
+                $reason += "Serial info is null. "
             }
             else{
-                $CheckThisLength = $CurrentDllExtraMeta.Serial.Length
+                $CheckThisLength = $CurrentDllExtraMeta.SignerCertificate.Serial.Length
                 $WhichOne = "Serial"
                 Length-Analysis($CheckThisLength,$WhichOne)
                 Hamming-Analysis($CurrentDll,$CurrentDllExtraMeta,$BaselineDLL,$WhichOne)
             }
 
-            if ($CurrentDllExtraMeta.Thumbprint -eq $null){
-                $reason = "Thumbprint info is null"
-                $reason
+            if ($CurrentDllExtraMeta.SignerCertificate.Thumbprint -eq $null){
+                $reason += "Thumbprint info is null. "
             }
             else{
-                $CheckThisLength = $CurrentDllExtraMeta.Thumbprint.Length
+                $CheckThisLength = $CurrentDllExtraMeta.SignerCertificate.Thumbprint.Length
                 $WhichOne = "Thumbprint"
                 Length-Analysis($CheckThisLength,$WhichOne)
                 Hamming-Analysis($CurrentDll,$CurrentDllExtraMeta,$BaselineDLL,$WhichOne)
@@ -224,6 +229,8 @@ Function DLL-Analysis {
             #Name length analysis
         }
     }
+    $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
+    $SetStyleBelow
 }
 #############################################################
 #############################################################
