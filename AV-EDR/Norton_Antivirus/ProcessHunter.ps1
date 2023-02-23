@@ -12,18 +12,20 @@
 ### Step 12: Ability to download latest application definitions +
 ### Step 13: Add DLL baselining for applications +
 ### Step 14: Restructure Output to not show positive matches +
-### Step 15: Separate DLL Baselining 
-### Step 16: Maybe add logic for services that should run as user that run as something else?
-### Step 17: Logic for when Echo Trails API key runs out or doesnt work
-### Step 18: Add PS-Remoting
-### Step 19: After PS-Remoting, add host to Output Results
-### Step 20: Add module for Sigma hunting
-### Step 21: Traditional AV functionality (Hash -> VT)
+### Step 15: Add Name Length Analysis +
+### Step 16: Separate DLL Baselining  - Create separate function
+### Step 17: Add logic for services that should run as user that run as something else?
+### Step 18: Add frequency analysis like freq.py against service names
+### Step 19: Logic for when Echo Trails API key runs out or doesnt work
+### Step 20: Add PS-Remoting
+### Step 21: After PS-Remoting, add host to Output Results
+### Step 22: Add separate module for Sigma hunting
+### Step 23: Traditional AV functionality (Hash -> VT)
 ### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
-###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? freq.py? gravejester - PS
+###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? gravejester - PS
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
 ### Possible: In future maybe add non-ephemeral network ports baseline? - Lab4.3 might be good reference; also lab5.2
-### Possible: In future add to memory hunting
+### Possible: In future add deep dive memory hunting into anomalous processes: MemProcFS? from 508 b3p121
 ### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
 ### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2)
 ### Possible: forensics b1p60 common malware names & locations?
@@ -39,15 +41,17 @@
 $HammingScoreTolerance = 2 #Tune our Hamming score output
 . ./FuzzyCheck/Get-HammingDistance.ps1
 
+#Name Length Tolerance
+$ProcNameLengthTolerance = 6 #.exe is 4 chars
+
 #Ability to import the latest definitions from GitHub:
 $PullLatestBaseline = $false
 if ($PullLatestBaseline){
     Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/baselines/CoreProcessesBaseline.csv' -OutFile './baselines/CoreProcessesBaseline.csv'
-    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/baselines/BaselineDLLs.csv' -OutFile './baselines/BaselineDLLs.csv'
 }
 
 #Define Echo Trails API Key 
-$ETkey = "<enter-api-key-here>"
+$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
 
 #Create / Clear our process output files
 $goodProcsfile = './output/processHunting/goodProcs.csv'
@@ -98,14 +102,6 @@ foreach ($process in $CoreProcesses) {
         $process.Notes = $null
     }
 }
-
-#Create / Clear our DLL output files
-$unknownDLLsfile = './output/processHunting/unknownProcs.csv'
-$anomalousDLLsfile = './output/processHunting/anomalousProcs.csv'
-New-Item -ItemType File -Path $unknownDLLsfile -Force | Out-Null
-New-Item -ItemType File -Path $anomalousDLLsfile -Force | Out-Null
-
-$BaselineDLLs = Import-Csv -Path ./baselines/BaselineDLLs.csv
 #############################################################
 #############################################################
 #############################################################
@@ -197,7 +193,7 @@ Function Append-CSV-EchoTrails {
     $csvfile | Export-CSV $whichfile -Force –Append
 }
 
-Function Append-CSV-NameFreqAnalysis {
+Function Append-CSV-Analysis {
     #Processes matching baseline and unknowns have regular minimal data
         
         $csvfile = [PSCustomObject]@{
@@ -309,7 +305,7 @@ Function Check-EchoTrails-RootProcs {
 #############################################################
 ######################Frequency Analysis#####################
 #############################################################
-Function Hamming-Analysis {
+Function Hamming-Analysis-Procs {
     #Processes matching baseline and unknowns have regular minimal data
     foreach($line in $CoreProcesses){
         $StringCoreProcName = [string]$line.procName
@@ -318,94 +314,44 @@ Function Hamming-Analysis {
         if ($HammingScore -le $HammingScoreTolerance){
             $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
             $SetStyleBelow
-            $reason = "Very Similar to other host name"
+            $reason = "Similar to baseline service name"
             $reason
                             
             $whichfile = $anomalousProcsfile
-            Append-CSV-NameFreqAnalysis($StringCoreProcName)
+            Append-CSV-Analysis($StringCoreProcName)
             if($parentvschild = "child"){
                 Set-StyleChildrenProcs
             }
             else{
-                Set-StyleChildrenProcs
+                Set-StyleRootProcs
             } 
         }
     }
 }
-#############################################################
-#############################################################
-#############################################################
 
-
-#############################################################
-#####################DLL General Baseline####################
-#############################################################
-Function DLL-Analysis {
-    $reason = ""
-    $BaselineDLL
-
-    #Separate module to only do each unique DLL/exe once
-    Write-Host("Gathering Currently Loaded Dlls...")
-    $CurrentDlls = Get-Process | Select-Object -ExpandProperty Modules | sort -Unique | Select-Object ModuleName,FileName,Size,Company,Description
-    Write-Host("Analyzing Against Baseline...")
-    foreach($CurrentDll in $CurrentDlls){
-        $CurrentDllExtraMeta = Get-ChildItem $CurrentDll.FileName | Get-AuthenticodeSignature | ` Select-Object -Property ISOSBinary,SignatureType,Status,SignerCertificate
-        #Analyze against baseline DLLs - Status
-        if($CurrentDll.ModuleName -in $BaselineDLLs.ModuleName){
-            $BaselineDLL = $BaselineDLLs | Where-Object {$_.FileName -eq $CurrentDll.FileName}
-
-            #First Check to make sure it's the same directory
-            if([string]$CurrentDll.FileName -eq $BaselineDLL.FileName){
-                #Next we check to make sure it's the same size. Some malware appends to the end of legitamite DLLs
-                if([int]$CurrentDll.Size -eq $BaselineDLL.Size){
-                    #Next check the company
-                    if([string]$CurrentDll.Company -eq $BaselineDLL.Company){
-                        #Last check the status
-                        if($CurrentDllExtraMeta.Status -eq $BaselineDLL.Status){
-                        }
-                        else{
-                            $reason = "$($CurrentDllExtraMeta.Status) was not the same status as our baseline."
-                            $reason
-                        }
-                    }
-                    #Else Company did not match
-                    else{
-                        $reason = "$($CurrentDll.Company) was not the same size as our baseline. The company did not match"
-                        $reason
-                    }
-                }
-                #Else we failed the Size Check
-                else{
-                    $reason = "$($CurrentDll.ModuleName) was not the same size as our baseline. Some malware appends to the end of legitamite signed DLLs."
-                    $reason
-                }
+Function Length-Analysis-Procs {
+    #Processes matching baseline and unknowns have regular minimal data
+        $ProcNameLength = [int]$RunningProcess.Name.Length
+        
+        if ($ProcNameLength -le $ProcNameLengthTolerance){
+            $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+            $SetStyleBelow
+            $reason = "Short name"
+            $reason
+                            
+            $whichfile = $anomalousProcsfile
+            Append-CSV-Analysis($RunningProcess)
+            if($parentvschild = "child"){
+                Set-StyleChildrenProcs
             }
-            #Else the DLL matched but it failed the directory check
             else{
-                $reason = "$($CurrentDll.FileName) was in the baseline list but didn't match the directory $($BaselineDLL.FileName). This could be an indicator of DLL side loading."
-                #$reason
-            }
+                Set-StyleRootProcs
+            } 
         }
-        #If $CurrentDll.ModuleName -notin $BaselineDLLs.ModuleName
-        else{
-            #Look for blank fields?
-            #Where-Object {$_.Status -ne "Valid"}
-
-            #Look for unsigned?
-
-            #List of Issuers?
-
-            #Check size?
-
-            #Hamming Frequency Analysis
-        }
-    }
 }
 #############################################################
 #############################################################
 #############################################################
-
-
 
 Function Get-RootParentProcess {
     Param($process,$allProcesses)
@@ -579,7 +525,8 @@ Function Get-ChildProcesses { #Return all child processes for a given process
 
             #Before checking Echo Trails, analyze name frequency against baseline procs
             $parentvschild = "child"
-            Hamming-Analysis($parentvschild)
+            Hamming-Analysis-Procs($parentvschild)
+            Length-Analysis-Procs($parentvschild)
 
             #Test Echo Trails
             $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
@@ -757,7 +704,8 @@ $rootParents | ForEach-Object {
 
         #Before checking Echo Trails, analyze name frequency against baseline procs
         $parentvschild = "parent"
-        Hamming-Analysis($parentvschild)
+        Hamming-Analysis-Procs($parentvschild)
+        Length-Analysis-Procs($parentvschild)
 
         #Test Echo Trails
         $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
@@ -783,7 +731,7 @@ $rootParents | ForEach-Object {
         else{
                 #White Indicates No Baseline Data
                 $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-                Set-StyleTootProcs
+                Set-StyleRootProcs
                 $reason = "No baseline data"
             
                 #Add to file
@@ -793,6 +741,3 @@ $rootParents | ForEach-Object {
 
     }
 }
-
-#Perform our DLL Analysis
-DLL-Analysis
