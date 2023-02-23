@@ -11,21 +11,21 @@
 ### Step 11: Add reasons for failures +
 ### Step 12: Ability to download latest application definitions +
 ### Step 13: Add DLL baselining for applications +
-### Step 14: ADD SEPARATE FUNCTION CHECK: $processModules.modules.FileName  ###SANS 508 b1.p76 
-###          Maybe add logic for services that should run as user that run as something else?
-### Step 15: Logic for when Echo Trails API key runs out or doesnt work
-### Step 16: Add PS-Remoting
-### Step 17: After PS-Remoting, add host to Output Results
-### Step 18: Add module for Sigma hunting
-### Step 19: Traditional AV functionality (Hash -> VT)
-### Step 20: Restructure Output to group based on Anomaly types
+### Step 14: Restructure Output to not show positive matches +
+### Step 15: Separate DLL Baselining 
+### Step 16: Maybe add logic for services that should run as user that run as something else?
+### Step 17: Logic for when Echo Trails API key runs out or doesnt work
+### Step 18: Add PS-Remoting
+### Step 19: After PS-Remoting, add host to Output Results
+### Step 20: Add module for Sigma hunting
+### Step 21: Traditional AV functionality (Hash -> VT)
 ### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
 ###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? freq.py? gravejester - PS
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
 ### Possible: In future maybe add non-ephemeral network ports baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future add to memory hunting
 ### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
-### Possible: Eric Zimmerman says scheduled tasks and new services are the place to look, perhaps add analysis module?
+### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2)
 ### Possible: forensics b1p60 common malware names & locations?
 ### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
 ### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1)
@@ -43,22 +43,22 @@ $HammingScoreTolerance = 2 #Tune our Hamming score output
 $PullLatestBaseline = $false
 if ($PullLatestBaseline){
     Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/baselines/CoreProcessesBaseline.csv' -OutFile './baselines/CoreProcessesBaseline.csv'
-    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/baselines/DllBaseline.csv' -OutFile './baselines/DllBaseline.csv'
+    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cyb3rpanda/Threat-Hunter/main/baselines/BaselineDLLs.csv' -OutFile './baselines/BaselineDLLs.csv'
 }
 
 #Define Echo Trails API Key 
 $ETkey = "<enter-api-key-here>"
 
-#Create / Clear our output files
-$goodfile = './output/processHunting/good.csv'
-$unknownfile = './output/processHunting/unknown.csv'
-$anomalousfile = './output/processHunting/anomalous.csv'
-$fullDataNotReturned = './output/processHunting/fullDataNotReturned.csv'
+#Create / Clear our process output files
+$goodProcsfile = './output/processHunting/goodProcs.csv'
+$unknownProcsfile = './output/processHunting/unknownProcs.csv'
+$anomalousProcsfile = './output/processHunting/anomalousProcs.csv'
+$fullDataNotReturnedProcs = './output/processHunting/fullDataNotReturnedProcs.csv'
 $whichfile
-New-Item -ItemType File -Path $goodfile -Force | Out-Null
-New-Item -ItemType File -Path $unknownfile -Force | Out-Null
-New-Item -ItemType File -Path $anomalousfile -Force | Out-Null
-New-Item -ItemType File -Path $fullDataNotReturned -Force | Out-Null
+New-Item -ItemType File -Path $goodProcsfile -Force | Out-Null
+New-Item -ItemType File -Path $unknownProcsfile -Force | Out-Null
+New-Item -ItemType File -Path $anomalousProcsfile -Force | Out-Null
+New-Item -ItemType File -Path $fullDataNotReturnedProcs -Force | Out-Null
 
 #Keep track of current running Proc looking at
 $RunningProcess
@@ -98,6 +98,14 @@ foreach ($process in $CoreProcesses) {
         $process.Notes = $null
     }
 }
+
+#Create / Clear our DLL output files
+$unknownDLLsfile = './output/processHunting/unknownProcs.csv'
+$anomalousDLLsfile = './output/processHunting/anomalousProcs.csv'
+New-Item -ItemType File -Path $unknownDLLsfile -Force | Out-Null
+New-Item -ItemType File -Path $anomalousDLLsfile -Force | Out-Null
+
+$BaselineDLLs = Import-Csv -Path ./baselines/BaselineDLLs.csv
 #############################################################
 #############################################################
 #############################################################
@@ -109,7 +117,7 @@ foreach ($process in $CoreProcesses) {
 Function Append-CSV {
     $csvfile
     #Processes matching baseline and unknowns have regular minimal data
-    if (($whichfile -eq $goodfile)){
+    if (($whichfile -eq $goodProcsfile)){
         $csvfile = [PSCustomObject]@{
             ProcessName = $RunningProcess.Name
             ProcessId = $RunningProcess.ProcessId
@@ -120,7 +128,7 @@ Function Append-CSV {
         }
     }
     #Processes without full data include a reason column
-    elseif (($whichfile -eq $fullDataNotReturned) -or ($whichfile -eq $unknownfile)) {
+    elseif (($whichfile -eq $fullDataNotReturnedProcs) -or ($whichfile -eq $unknownProcsfile)) {
         $csvfile = [PSCustomObject]@{
             ProcessName = $RunningProcess.Name
             ProcessId = $RunningProcess.ProcessId
@@ -133,7 +141,7 @@ Function Append-CSV {
         }
     }
     #Anomalous processes
-    elseif ($whichfile -eq $anomalousfile) {
+    elseif ($whichfile -eq $anomalousProcsfile) {
         $csvfile = [PSCustomObject]@{
             ProcessName         = $RunningProcess.Name
             ExpectedProcessName = $CoreProcess.procName
@@ -252,7 +260,7 @@ Function Check-EchoTrails-ChildrenProcs {
             $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner)) $ResetStyle"
 
             #Add to file
-            $whichfile = $goodfile
+            $whichfile = $goodProcsfile
             Append-CSV-EchoTrails($($results))
     }
     else{
@@ -263,7 +271,7 @@ Function Check-EchoTrails-ChildrenProcs {
             $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner)) $ResetStyle"
 
             #Add to file
-            $whichfile = $anomalousfile
+            $whichfile = $anomalousProcsfile
             Append-CSV-EchoTrails($($results))
     }
 }
@@ -277,14 +285,14 @@ Function Check-EchoTrails-RootProcs {
         $SetStyleBelow = "$($PSStyle.Foreground.Green)"
 
         #Add to file
-        $whichfile = $goodfile
+        $whichfile = $goodProcsfile
         Append-CSV-EchoTrails($($results))
     }
     else{
         $SetStyleBelow = "$($PSStyle.Foreground.Red)"
 
         #Add to file
-        $whichfile = $anomalousfile
+        $whichfile = $anomalousProcsfile
         Append-CSV-EchoTrails($($results))
     }
     
@@ -313,7 +321,7 @@ Function Hamming-Analysis {
             $reason = "Very Similar to other host name"
             $reason
                             
-            $whichfile = $anomalousfile
+            $whichfile = $anomalousProcsfile
             Append-CSV-NameFreqAnalysis($StringCoreProcName)
             if($parentvschild = "child"){
                 Set-StyleChildrenProcs
@@ -332,22 +340,65 @@ Function Hamming-Analysis {
 #############################################################
 #####################DLL General Baseline####################
 #############################################################
-Function DLL-Baseline {
+Function DLL-Analysis {
+    $reason = ""
+    $BaselineDLL
+
     #Separate module to only do each unique DLL/exe once
-    $FullDlls = Get-Process | Select-Object -ExpandProperty Modules | Select-Object FileName
-    foreach($FullDll in $FullDlls){
-        $currentDLL = Get-ChildItem $FullDll.FileName | Get-AuthenticodeSignature | ` Select-Object -Property Path,ISOSBinary,SignatureType,Status, ` @{Expression={($_.SignerCertificate.Subject)}}, ` @{Expression={($_.SignerCertificate.Issuer)}}, ` @{Expression={($_.SignerCertificate.SerialNumber)}}, ` @{Expression={($_.SignerCertificate.NotBefore)}}, ` @{Expression={($_.SignerCertificate.NotAfter)}}, ` @{Expression={($_.SignerCertificate.ThumbPrint)}}
-    
-        #Analyze against baseline DLLs - check dll against directory
+    Write-Host("Gathering Currently Loaded Dlls...")
+    $CurrentDlls = Get-Process | Select-Object -ExpandProperty Modules | sort -Unique | Select-Object ModuleName,FileName,Size,Company,Description
+    Write-Host("Analyzing Against Baseline...")
+    foreach($CurrentDll in $CurrentDlls){
+        $CurrentDllExtraMeta = Get-ChildItem $CurrentDll.FileName | Get-AuthenticodeSignature | ` Select-Object -Property ISOSBinary,SignatureType,Status,SignerCertificate
+        #Analyze against baseline DLLs - Status
+        if($CurrentDll.ModuleName -in $BaselineDLLs.ModuleName){
+            $BaselineDLL = $BaselineDLLs | Where-Object {$_.FileName -eq $CurrentDll.FileName}
 
-        #Look for blank fields?
-        #Where-Object {$_.Status -ne "Valid"}
+            #First Check to make sure it's the same directory
+            if([string]$CurrentDll.FileName -eq $BaselineDLL.FileName){
+                #Next we check to make sure it's the same size. Some malware appends to the end of legitamite DLLs
+                if([int]$CurrentDll.Size -eq $BaselineDLL.Size){
+                    #Next check the company
+                    if([string]$CurrentDll.Company -eq $BaselineDLL.Company){
+                        #Last check the status
+                        if($CurrentDllExtraMeta.Status -eq $BaselineDLL.Status){
+                        }
+                        else{
+                            $reason = "$($CurrentDllExtraMeta.Status) was not the same status as our baseline."
+                            $reason
+                        }
+                    }
+                    #Else Company did not match
+                    else{
+                        $reason = "$($CurrentDll.Company) was not the same size as our baseline. The company did not match"
+                        $reason
+                    }
+                }
+                #Else we failed the Size Check
+                else{
+                    $reason = "$($CurrentDll.ModuleName) was not the same size as our baseline. Some malware appends to the end of legitamite signed DLLs."
+                    $reason
+                }
+            }
+            #Else the DLL matched but it failed the directory check
+            else{
+                $reason = "$($CurrentDll.FileName) was in the baseline list but didn't match the directory $($BaselineDLL.FileName). This could be an indicator of DLL side loading."
+                #$reason
+            }
+        }
+        #If $CurrentDll.ModuleName -notin $BaselineDLLs.ModuleName
+        else{
+            #Look for blank fields?
+            #Where-Object {$_.Status -ne "Valid"}
 
-        #Look for unsigned?
+            #Look for unsigned?
 
-        #List of Issuers?
+            #List of Issuers?
 
-        #Check size?
+            #Check size?
+
+            #Hamming Frequency Analysis
+        }
     }
 }
 #############################################################
@@ -434,7 +485,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                         #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                         if (($CoreProcess.UserAccount -eq "MULTIPLE" -or $CoreProcess.UserAccount -eq "HOST") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
                             $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
-                            $whichfile = $goodfile
+                            $whichfile = $goodProcsfile
 
                             ###Check all loaded DLLs per proc against baseline data; note DLL baseline location separate function
                             if($CoreProcess.LoadedDlls -eq $null){
@@ -455,14 +506,16 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                                         $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                                         $SetStyleBelow
                                         $reason += "($($loadedDLL)) is NOT in the DLL baseline list "
+                                        $reason
                                         Write-Host("$($loadedDLL),")
-                                        $whichfile = $anomalousfile
+                                        $whichfile = $anomalousProcsfile
+
+                                        Set-StyleChildrenProcs
                                     }
-                                    $loadedDLL.FileName
-                            } #$reason
+                            }
                         }
                         Append-CSV
-                        Set-StyleChildrenProcs
+                        #No longer Set-StyleChildrenProcs to below to suppress output
 
                         }
                         else{
@@ -471,7 +524,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                             $reason = "Different User Context than expected"
                             $reason
                             #Add to file
-                            $whichfile = $anomalousfile
+                            $whichfile = $anomalousProcsfile
                             Append-CSV
                         }
                     }
@@ -479,7 +532,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                         $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                         Set-StyleChildrenProcs
                         #Add to file
-                        $whichfile = $anomalousfile
+                        $whichfile = $anomalousProcsfile
                         Append-CSV
                     }
                 }
@@ -491,7 +544,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                     Set-StyleChildrenProcs
 
                     #Add to file
-                    $whichfile = $anomalousfile
+                    $whichfile = $anomalousProcsfile
                     Append-CSV
                 }
             }
@@ -499,13 +552,13 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 #First check if the value was null
                 if(($RunningProcess.Path -eq $null)){
                     $reason = "Expected a Path but our query returned a null value"
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
-                    $SetStyleBelow
-                    $reason
-                    Set-StyleChildrenProcs
+                    #$SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
+                    #$SetStyleBelow
+                    #$reason
+                    #Set-StyleChildrenProcs
 
                     #Add to file
-                    $whichfile = $fullDataNotReturned
+                    $whichfile = $fullDataNotReturnedProcs
                     Append-CSV($reason)
                 }
                 else{
@@ -516,7 +569,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                     Set-StyleChildrenProcs
 
                     #Add to file
-                    $whichfile = $anomalousfile
+                    $whichfile = $anomalousProcsfile
                     Append-CSV
                 }
             }
@@ -540,7 +593,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 Set-StyleChildrenProcs
             
                 #Add to file
-                $whichfile = $unknownfile
+                $whichfile = $unknownProcsfile
                 Append-CSV
             }
 
@@ -556,7 +609,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                     Set-StyleChildrenProcs
                 
                     #Add to file
-                    $whichfile = $unknownfile
+                    $whichfile = $unknownProcsfile
                     Append-CSV
             }
 
@@ -567,6 +620,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
     }
 }
 
+Write-Output("Beginning Running Process Analysis...")
 $allProcesses = Get-CimInstance -ClassName Win32_Process | Select-Object -Property Name,ProcessId,Path,HandleCount,WorkingSetSize,ParentProcessId,CreationDate,CommandLine,UserName
 
 $rootParents = $allProcesses | ForEach-Object {
@@ -612,7 +666,7 @@ $rootParents | ForEach-Object {
                 #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                 if (($CoreProcess.UserAccount -eq "MULTIPLE") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
                         $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
-                        $whichfile = $goodfile
+                        $whichfile = $goodProcsfile
 
                         ###Check all loaded DLLs per proc against baseline data; note DLL baseline location separate function
                         if($CoreProcess.LoadedDlls -eq $null){
@@ -635,13 +689,16 @@ $rootParents | ForEach-Object {
                                     $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                                     $SetStyleBelow
                                     $reason += "($($loadedDLL)) is NOT in the DLL baseline list "
-                                    $whichfile = $anomalousfile
+                                    $reason
+                                    $whichfile = $anomalousProcsfile
                                     
+                                Set-StyleRootProcs
                                 }
-                            } $reason
+                            } #$reason
                         }
                         Append-CSV
-                        Set-StyleRootProcs
+                        #Changed from Set-StyleRootProcs to below to suppress output
+                        Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
                 }
                 else{
                         $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
@@ -651,7 +708,7 @@ $rootParents | ForEach-Object {
                         Set-StyleRootProcs
                         
                         #Add to file
-                        $whichfile = $anomalousfile
+                        $whichfile = $anomalousProcsfile
                         Append-CSV
                 }
 
@@ -664,7 +721,7 @@ $rootParents | ForEach-Object {
                     Set-StyleRootProcs
 
                     #Add to file
-                    $whichfile = $anomalousfile
+                    $whichfile = $anomalousProcsfile
                     Append-CSV
             }
 
@@ -672,14 +729,14 @@ $rootParents | ForEach-Object {
         else{
             #First check if the value was null
             if($RunningProcess.Path -eq $null){
-                $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
-                $SetStyleBelow
-                $reason = "Expected a Path but our query returned a null value"
-                $reason
+                #$SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
+                #$SetStyleBelow
+                #$reason = "Expected a Path but our query returned a null value"
+                #$reason
                 Set-StyleRootProcs
 
                 #Add to file
-                $whichfile = $fullDataNotReturned
+                $whichfile = $fullDataNotReturnedProcs
                 Append-CSV(($reason))
             }
 
@@ -691,7 +748,7 @@ $rootParents | ForEach-Object {
                     Set-StyleRootProcs
 
                     #Add to file
-                    $whichfile = $anomalousfile
+                    $whichfile = $anomalousProcsfile
                     Append-CSV
             }
         }
@@ -714,7 +771,7 @@ $rootParents | ForEach-Object {
             Set-StyleRootProcs
         
             #Add to file
-            $whichfile = $unknownfile
+            $whichfile = $unknownProcsfile
             Append-CSV
         }
 
@@ -730,9 +787,12 @@ $rootParents | ForEach-Object {
                 $reason = "No baseline data"
             
                 #Add to file
-                $whichfile = $unknownfile
+                $whichfile = $unknownProcsfile
                 Append-CSV
         }
 
     }
 }
+
+#Perform our DLL Analysis
+DLL-Analysis
