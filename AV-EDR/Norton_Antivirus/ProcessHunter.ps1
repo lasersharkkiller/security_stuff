@@ -13,14 +13,17 @@
 ### Step 13: Add DLL baselining for applications +
 ### Step 14: Restructure Output to not show positive matches +
 ### Step 15: Add Name Length Analysis +
-### Step 16: Separate DLL Baselining  - Create separate function
-### Step 17: Add logic for services that should run as user that run as something else?
+### Step 16: Separate DLL Baselining  - Create separate function +
+### Step 17: Add logic for services that should run as user that run as something else
 ### Step 18: Add frequency analysis like freq.py against service names
 ### Step 19: Logic for when Echo Trails API key runs out or doesnt work
 ### Step 20: Add PS-Remoting
 ### Step 21: After PS-Remoting, add host to Output Results
 ### Step 22: Add separate module for Sigma hunting
 ### Step 23: Traditional AV functionality (Hash -> VT)
+### Step 24: Add yara.exe scan (508 b4p12)
+### Possible: PS alternative to DensityScout? (508 b4p9)
+### Possible: Add capa to flow (508 b4p14-16)?
 ### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
 ###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? gravejester - PS
 ### Possible: Reference to look up process creation times for analysis, Handles, etc? 
@@ -51,13 +54,13 @@ if ($PullLatestBaseline){
 }
 
 #Define Echo Trails API Key 
-$ETkey = "<enter-api-key-here>"
+$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
 
 #Create / Clear our process output files
-$goodProcsfile = './output/processHunting/goodProcs.csv'
-$unknownProcsfile = './output/processHunting/unknownProcs.csv'
-$anomalousProcsfile = './output/processHunting/anomalousProcs.csv'
-$fullDataNotReturnedProcs = './output/processHunting/fullDataNotReturnedProcs.csv'
+$goodProcsfile = './output/Hunting/goodProcs.csv'
+$unknownProcsfile = './output/Hunting/unknownProcs.csv'
+$anomalousProcsfile = './output/Hunting/anomalousProcs.csv'
+$fullDataNotReturnedProcs = './output/Hunting/fullDataNotReturnedProcs.csv'
 $whichfile
 New-Item -ItemType File -Path $goodProcsfile -Force | Out-Null
 New-Item -ItemType File -Path $unknownProcsfile -Force | Out-Null
@@ -741,3 +744,6 @@ $rootParents | ForEach-Object {
 
     }
 }
+
+$SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
+$SetStyleBelow
