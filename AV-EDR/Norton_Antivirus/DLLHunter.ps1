@@ -7,14 +7,18 @@
 ### Step 7: Move skipped certs statistical analysis to after known good iterated  +
 ### Step 8: Write unknown / anomalous to file +
 ### Step 9: Check if equal to list Issuers but not valid +
+### Step 10: Freq.ps1 integration
 
 #############################################################
 #######################Define Variables######################
 #############################################################
+#Requires -RunAsAdministrator
+
 #Import HammingScore Function for name masquerading
 # https://github.com/gravejester/Communary.PASM
 $HammingScoreTolerance = 2 #Tune our Hamming score output
-. ./FuzzyCheck/Get-HammingDistance.ps1
+. ./modules/Get-HammingDistance.ps1
+. ./modules/Freq.ps1
 
 #Name Length Tolerance
 $LengthTolerance = 6 #.dll is 4 chars
@@ -77,7 +81,7 @@ Function Hamming-Analysis {
         if ($HammingScore -le $HammingScoreTolerance){
             $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
             $SetStyleBelow
-            $reason += "Similar naming but not the same for $($WhichOne)"
+            $reason += "Similar naming of $($StringRunDLLMeta) but not the same for $($BaselineDLLMeta)"
             $reason
 
             $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason
