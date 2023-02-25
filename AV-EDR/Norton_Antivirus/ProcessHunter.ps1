@@ -14,24 +14,24 @@
 ### Step 14: Restructure Output to not show positive matches +
 ### Step 15: Add Name Length Analysis +
 ### Step 16: Separate DLL Baselining  - Create separate function +
-### Step 17: Add logic for services that should run as user that run as something else
-### Step 18: Add frequency analysis like freq.py against service names
-### Step 19: Logic for when Echo Trails API key runs out or doesnt work
-### Step 20: Add PS-Remoting
-### Step 21: After PS-Remoting, add host to Output Results
-### Step 22: Add separate module for Sigma hunting
-### Step 23: Traditional AV functionality (Hash -> VT)
-### Step 24: Add yara.exe scan (508 b4p12)
-### Possible: PS alternative to DensityScout? (508 b4p9)
+### Step 17: Add logic for services that should run as user that run as something else +
+### Step 18: Force running as root +
+### Step 19: Add frequency analysis like freq.py against service names +
+### Step 20: Logic for when Echo Trails API key runs out or doesnt work
+### Step 21: Add PS-Remoting
+### Step 22: After PS-Remoting, add host to Output Results
+### Step 23: Add separate module for Sigma hunting
+### Step 24: Traditional AV functionality (Hash -> VT)
+### Step 25: Add yara.exe scan? (508 b4p12)
+### Possible: PS alternative to DensityScout? / entropy analysis (508 b4p9)
 ### Possible: Add capa to flow (508 b4p14-16)?
 ### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
 ###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? gravejester - PS
-### Possible: Reference to look up process creation times for analysis, Handles, etc? 
 ### Possible: In future maybe add non-ephemeral network ports baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future add deep dive memory hunting into anomalous processes: MemProcFS? from 508 b3p121
 ### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
 ### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2)
-### Possible: forensics b1p60 common malware names & locations?
+### Possible: forensics b1p60 common malware names -covered under DLLHunter? & locations?
 ### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
 ### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1)
 ### Possible: Analyze shimcache with same anomaly logic? (508 Lab 2.1)
@@ -39,13 +39,18 @@
 #############################################################
 #######################Define Variables######################
 #############################################################
+#Requires -RunAsAdministrator
+
 #Import HammingScore Function for name masquerading
 # https://github.com/gravejester/Communary.PASM
 $HammingScoreTolerance = 2 #Tune our Hamming score output
-. ./FuzzyCheck/Get-HammingDistance.ps1
+. ./modules/Get-HammingDistance.ps1
+. ./modules/Freq.ps1
 
 #Name Length Tolerance
 $ProcNameLengthTolerance = 6 #.exe is 4 chars
+#Frequency Tolerance. Mark uses 5, higher values normal words
+$FreqScoreTolerance = 5
 
 #Ability to import the latest definitions from GitHub:
 $PullLatestBaseline = $false
@@ -54,7 +59,7 @@ if ($PullLatestBaseline){
 }
 
 #Define Echo Trails API Key 
-$ETkey = "<enter-api-key-here>"
+$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
 
 #Create / Clear our process output files
 $goodProcsfile = './output/Hunting/goodProcs.csv'
@@ -339,7 +344,7 @@ Function Length-Analysis-Procs {
         if ($ProcNameLength -le $ProcNameLengthTolerance){
             $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
             $SetStyleBelow
-            $reason = "Short name"
+            $reason = "Short name could be an indicator."
             $reason
                             
             $whichfile = $anomalousProcsfile
@@ -351,6 +356,25 @@ Function Length-Analysis-Procs {
                 Set-StyleRootProcs
             } 
         }
+}
+
+Function Freq-Analysis {
+    #Use Mark Baggett's Frequency Analysis
+    $FreqReturn = Get-FrequencyScore -Measure $RunningProcess.Name 
+    $FreqScore = $FreqReturn.FrequencyScore -replace "[()]" 
+    $FreqScore = $FreqScore -split ","
+    $FreqScore = [int]$FreqScore[0]
+    if ($FreqScore -le $FreqScoreTolerance){
+        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+        $SetStyleBelow
+        $reason = "Naming fell outside our frequency tolerance, could be an indicator."
+        $reason
+                            
+        $whichfile = $anomalousProcsfile
+        Append-CSV-Analysis($RunningProcess)
+    }
+    else{}
+
 }
 #############################################################
 #############################################################
@@ -384,7 +408,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
     
     #get owner
     $pidQuery = Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE ProcessID = `'$($_.ProcessId)`'"
-    $owner = Invoke-CimMethod -InputObject $pidQuery -MethodName GetOwner
+    $owner = Invoke-CimMethod -InputObject $pidQuery -MethodName GetOwner -ErrorAction SilentlyContinue
     $parentproc = Get-CimInstance Win32_Process -Filter "processid = `'$($_.ParentProcessID)`'"| Select-Object -Property Name,Path -Unique
 
     $RunningProcess = [PSCustomObject]@{
@@ -432,7 +456,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 if(($CoreProcess.ParentProc -eq "MULTIPLE") -or ($RunningProcess.ParentProcess -eq $CoreProcess.ParentProc) -or ($MultipleParentMatch)){
                     if (($CoreProcess.NumberOfInstances -eq 1 -and $RunningProcess.NumberOfInstances -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
                         #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
-                        if (($CoreProcess.UserAccount -eq "MULTIPLE" -or $CoreProcess.UserAccount -eq "HOST") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
+                        if (($CoreProcess.UserAccount -eq "MULTIPLE" -or $CoreProcess.UserAccount -eq "HOST") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "USER" -and (($($RunningProcess.Owner)) -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE")) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE","USER" -and $CoreProcess.UserAccount -ne $null)){
                             $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
                             $whichfile = $goodProcsfile
 
@@ -530,6 +554,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             $parentvschild = "child"
             Hamming-Analysis-Procs($parentvschild)
             Length-Analysis-Procs($parentvschild)
+            Freq-Analysis($parentvschild)
 
             #Test Echo Trails
             $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
@@ -709,6 +734,7 @@ $rootParents | ForEach-Object {
         $parentvschild = "parent"
         Hamming-Analysis-Procs($parentvschild)
         Length-Analysis-Procs($parentvschild)
+        Freq-Analysis($parentvschild)
 
         #Test Echo Trails
         $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
