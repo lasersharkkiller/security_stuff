@@ -25,7 +25,7 @@ function Get-HammingDistance {
             https://communary.wordpress.com/
             https://github.com/gravejester/Communary.PASM
         .NOTES
-            Author: Ã˜yvind Kallstad
+            Author: Øyvind Kallstad
             Date: 03.11.2014
             Version: 1.0
     #>
