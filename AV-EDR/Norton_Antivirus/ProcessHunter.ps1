@@ -30,11 +30,12 @@
 ### Possible: In future maybe add non-ephemeral network ports baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: In future add deep dive memory hunting into anomalous processes: MemProcFS? from 508 b3p121
 ### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
-### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2)
+### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2 p94)
 ### Possible: forensics b1p60 common malware names -covered under DLLHunter? & locations?
 ### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
 ### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1)
-### Possible: Analyze shimcache with same anomaly logic? (508 Lab 2.1)
+### Possible: Analyze shimcache with same anomaly logic? (508 Lab 2.1) or amcache since written to registry and tracks DLL info too (508 b2p18)
+### Possible: Service log anomalous ids to indicators? (508 b2p101)
 
 #############################################################
 #######################Define Variables######################
@@ -59,7 +60,7 @@ if ($PullLatestBaseline){
 }
 
 #Define Echo Trails API Key 
-$ETkey = "0pWySfWK530M3pWAvcipaUsNyxNF9wC9AIVDma12"
+$ETkey = "<enter-api-key-here>"
 
 #Create / Clear our process output files
 $goodProcsfile = './output/Hunting/goodProcs.csv'
@@ -648,7 +649,7 @@ $rootParents | ForEach-Object {
                             #Write-Host("($($RunningProcess.Name)) baseline loaded dlls has a null value")
                         }
                         else{
-                            $processModules = Get-Process -Id $RunningProcess.ProcessID|select modules
+                            $processModules = Get-Process -Id $RunningProcess.ProcessID|Select-Object modules
 
                             $CoreProcess.LoadedDlls = $CoreProcess.LoadedDlls.split(",")
                             
