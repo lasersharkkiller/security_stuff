@@ -17,23 +17,23 @@
 ### Step 17: Add logic for services that should run as user that run as something else +
 ### Step 18: Force running as root +
 ### Step 19: Add frequency analysis like freq.py against service names +
-### Step 20: Logic for when Echo Trails API key runs out or doesnt work
+### Step 20: Logic for when Echo Trails API key errors +
 ### Step 21: Add PS-Remoting
 ### Step 22: After PS-Remoting, add host to Output Results
 ### Step 23: Add separate module for Sigma hunting
 ### Step 24: Traditional AV functionality (Hash -> VT)
 ### Step 25: Add yara.exe scan? (508 b4p12)
+### Step 26: Pivot to memory analysis for anomalous processes: MemProcFS? from 508 b3p121
 ### Possible: PS alternative to DensityScout? / entropy analysis (508 b4p9)
 ### Possible: Add capa to flow (508 b4p14-16)?
 ### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
 ###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? gravejester - PS
 ### Possible: In future maybe add non-ephemeral network ports baseline? - Lab4.3 might be good reference; also lab5.2
-### Possible: In future add deep dive memory hunting into anomalous processes: MemProcFS? from 508 b3p121
 ### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
 ### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2 p94)
-### Possible: forensics b1p60 common malware names -covered under DLLHunter? & locations?
+### Possible: forensics b1p60 common malware names -covered under DLLHunter? & locations? or maybe sigma rule
 ### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
-### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1)
+### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1) - or diffmerge prefetch with amcache to optimize redundancy?
 ### Possible: Analyze shimcache with same anomaly logic? (508 Lab 2.1) or amcache since written to registry and tracks DLL info too (508 b2p18)
 ### Possible: Service log anomalous ids to indicators? (508 b2p101)
 
@@ -409,9 +409,11 @@ Function Get-ChildProcesses { #Return all child processes for a given process
     
     #get owner
     $pidQuery = Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE ProcessID = `'$($_.ProcessId)`'"
-    $owner = Invoke-CimMethod -InputObject $pidQuery -MethodName GetOwner -ErrorAction SilentlyContinue
-    $parentproc = Get-CimInstance Win32_Process -Filter "processid = `'$($_.ParentProcessID)`'"| Select-Object -Property Name,Path -Unique
-
+    if ($pidQuery -ne $null){
+        $owner = Invoke-CimMethod -InputObject $pidQuery -MethodName GetOwner -ErrorAction SilentlyContinue
+        $parentproc = Get-CimInstance Win32_Process -Filter "processid = `'$($_.ParentProcessID)`'"| Select-Object -Property Name,Path -Unique
+    }
+    
     $RunningProcess = [PSCustomObject]@{
         PSTypename      = "ProcessHunting"
         ProcessID       = $_.ProcessID
@@ -558,26 +560,36 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             Freq-Analysis($parentvschild)
 
             #Test Echo Trails
+            $skipifTrue = "False"
             $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
-            $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
 
-            if($results.message -match "EchoTrail has never observed"){
-                $reason = "Echo trails does not have this in the database"
-                $reason
-                #White Indicates No Baseline Data
-                $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-                Set-StyleChildrenProcs
-            
-                #Add to file
-                $whichfile = $unknownProcsfile
-                Append-CSV
+            try {
+                $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
+            } catch {
+                if ([string]$Error[0] -eq "The remote certificate is invalid because of errors in the certificate chain: PartialChain"){
+                    Write-Host("Error reaching out to Echo Trails. You probably have a proxy causing this error.")
+                    #Write-Warning $Error[0] #don't need this, replaced with our own message
+
+                    $reason = "Error reaching out to Echo Trails. You probably have a proxy causing this error."
+                    $whichfile = $unknownProcsfile
+                    Append-CSV
+                }
+                else{
+                    Write-Warning $Error[0]
+                    $reason = "Error reaching Echo Trails."
+                    $reason += [string] $Error[0]
+                    $whichfile = $unknownProcsfile
+                    Append-CSV
+                }
+
+                $skipifTrue = "True"
             }
 
+            if ($skipifTrue -eq "True"){Write-Host("Skipped")}
             elseif ($results){
                 Check-EchoTrails-ChildrenProcs($($results))
                 $results = $null
             }
-
             else{
                     $reason = "No baseline data"
                     #White Indicates No Baseline Data
@@ -738,26 +750,37 @@ $rootParents | ForEach-Object {
         Freq-Analysis($parentvschild)
 
         #Test Echo Trails
+        $skipifTrue = "False"
         $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
-        $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
 
-        if($results.message -match "EchoTrail has never observed"){
-            $reason = "Echo trails does not have this in the database"
-            $reason
-            #White Indicates No Baseline Data
-            $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-            Set-StyleRootProcs
-        
-            #Add to file
-            $whichfile = $unknownProcsfile
-            Append-CSV
+        try {
+            $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
+        } 
+        catch {
+            if ([string]$Error[0] -eq "The remote certificate is invalid because of errors in the certificate chain: PartialChain"){
+                Write-Host("Error reaching out to Echo Trails. You probably have a proxy causing this error.")
+                #Write-Warning $Error[0] #don't need this, replaced with our own message
+
+                $reason = "Error reaching out to Echo Trails. You probably have a proxy causing this error."
+                $whichfile = $unknownProcsfile
+                Append-CSV
+            }
+            else{
+                Write-Warning $Error[0]
+                $reason = "Error reaching Echo Trails."
+                $reason += [string] $Error[0]
+                $whichfile = $unknownProcsfile
+                Append-CSV
+            }
+
+            $skipifTrue = "True"
         }
 
+        if($skipifTrue = "True"){Write-Host("skipped!!")}
         elseif ($results){
             Check-EchoTrails-ChildrenProcs($($results))
             $results = $null
         }
-
         else{
                 #White Indicates No Baseline Data
                 $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
