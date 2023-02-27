@@ -7,7 +7,8 @@
 ### Step 7: Move skipped certs statistical analysis to after known good iterated  +
 ### Step 8: Write unknown / anomalous to file +
 ### Step 9: Check if equal to list Issuers but not valid +
-### Step 10: Freq.ps1 integration
+### Step 10: Freq.ps1 integration +
+### Possilby in future add Amcache analysis (508 b2p18)
 
 #############################################################
 #######################Define Variables######################
@@ -22,6 +23,8 @@ $HammingScoreTolerance = 2 #Tune our Hamming score output
 
 #Name Length Tolerance
 $LengthTolerance = 6 #.dll is 4 chars
+#Frequency Tolerance. Mark uses 5, higher values normal words but for DLLs maybe make lower (based on testing)
+$FreqScoreTolerance = 3
 
 #Ability to import the latest definitions from GitHub:
 $PullLatestBaseline = $false
@@ -47,50 +50,84 @@ $FilesToCheck = @() #We save this to a list and check after building our Trusted
 ######################Frequency Analysis#####################
 #############################################################
 Function Hamming-Analysis {
-    #Hamming Frequency Analysis against ModuleName, Company
+    #Hamming Frequency Analysis against various metadata
+    
+    #First optimize the baseline we are comparing against
+    if ($WhichOne -eq "DLL Name"){
+        $TrimmedDownList = $TrustedDLLs.ModuleName | Sort-Object -Unique
+    }
+    elseif ($WhichOne -eq "Company"){
+        $TrimmedDownList = $TrustedDLLs.Company | Sort-Object -Unique
+    }
+    elseif ($WhichOne -eq "Description"){
+        $TrimmedDownList = $TrustedDLLs.Description | Sort-Object -Unique
+    }
+    elseif ($WhichOne -eq "Subject"){
+        $TrimmedDownList = $TrustedDLLs.Subject | Sort-Object -Unique
+    }
+    elseif ($WhichOne -eq "Issuer"){
+        $TrimmedDownList = $TrustedDLLs.Issuer | Sort-Object -Unique
+    }
+    elseif ($WhichOne -eq "Serial"){
+        $TrimmedDownList = $TrustedDLLs.Serial | Sort-Object -Unique
+    }
+    elseif ($WhichOne -eq "Thumbprint"){
+        $TrimmedDownList = $TrustedDLLs.Thumbprint | Sort-Object -Unique
+    }
 
-    foreach($line in $TrustedDLLs){
+    #Now compare against optimized list
+    foreach($line in $TrimmedDownList){
 
-        if ($whichHammingAnalysis = "DLL Name"){
-            $BaselineDLLMeta = [string]$line.ModuleName
+        if ($WhichOne -eq "DLL Name"){
+            $BaselineDLLMeta = [string]$line
             $StringRunDLLMeta = [string]$FileToCheck.ModuleName
         }
-        elseif ($whichHammingAnalysis = "Company"){
-            $BaselineDLLMeta = [string]$line.Company
+        elseif ($WhichOne -eq "Company"){
+            $BaselineDLLMeta = [string]$line
             $StringRunDLLMeta = [string]$FileToCheck.Company
         }
-        elseif ($whichHammingAnalysis = "Subject"){
-            $BaselineDLLMeta = [string]$line.Subject
+        elseif ($WhichOne -eq "Description"){
+            $BaselineDLLMeta = [string]$line
+            $StringRunDLLMeta = [string]$FileToCheck.Description
+        }
+        elseif ($WhichOne -eq "Subject"){
+            $BaselineDLLMeta = [string]$line
             $StringRunDLLMeta = [string]$FileToCheck.Subject
         }
-        elseif ($whichHammingAnalysis = "Issuer"){
-            $BaselineDLLMeta = [string]$line.Issuer
+        elseif ($WhichOne -eq "Issuer"){
+            $BaselineDLLMeta = [string]$line
             $StringRunDLLMeta = [string]$FileToCheck.Issuer
         }
-        elseif ($whichHammingAnalysis = "Serial"){
-            $BaselineDLLMeta = [string]$line.Serial
+        elseif ($WhichOne -eq "Serial"){
+            $BaselineDLLMeta = [string]$line
             $StringRunDLLMeta = [string]$FileToCheck.Serial
         }
-        elseif ($whichHammingAnalysis = "Thumbprint"){
-            $BaselineDLLMeta = [string]$line.Thumbprint
+        elseif ($WhichOne -eq "Thumbprint"){
+            $BaselineDLLMeta = [string]$line
             $StringRunDLLMeta = [string]$FileToCheck.Thumbprint
         }
 
         #Do our actual analysis
-        $HammingScore = Get-HammingDistance $StringRunDLLMeta $BaselineDLLMeta
-        if ($HammingScore -le $HammingScoreTolerance){
-            $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-            $SetStyleBelow
-            $reason += "Similar naming of $($StringRunDLLMeta) but not the same for $($BaselineDLLMeta)"
-            $reason
+        if(($BaselineDLLMeta -eq "") -or ($BaselineDLLMeta -eq $StringRunDLLMeta)){
+            #Skip if null or exactly equal
+        }
+        else{
+            $HammingScore = Get-HammingDistance $StringRunDLLMeta $BaselineDLLMeta
+            if ($HammingScore -le $HammingScoreTolerance){
+                $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+                $SetStyleBelow
+                $reason += "Similar naming of $($StringRunDLLMeta) but not the same for $($BaselineDLLMeta)"
+                $reason
 
-            $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason
+                $whichfile = $anomalousDLLsfile
+                $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
+                $FileToCheck | Export-CSV $whichfile -Force –Append
+            }
         }
     }
 }
 Function Length-Analysis {
     #Length check of various metadata
-    
         if ($CheckThisLength -le $LengthTolerance){
             $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
             $SetStyleBelow
@@ -98,8 +135,48 @@ Function Length-Analysis {
             $reason
             
             $whichfile = $anomalousDLLsfile
-            $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason
+            $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
+            $FileToCheck | Export-CSV $whichfile -Force –Append
         }
+}
+
+Function Freq-Analysis {
+    #Use Mark Baggett's Frequency Analysis
+    if ($WhichOne -eq "DLL Name"){
+        $StringRunDLLMeta = [string]$FileToCheck.ModuleName
+        $StringRunDLLMeta = $StringRunDLLMeta -replace ".dll"
+        $StringRunDLLMeta = $StringRunDLLMeta -replace ".exe"
+    }
+    elseif ($WhichOne -eq "Company"){
+        $StringRunDLLMeta = [string]$FileToCheck.Company
+    }
+    elseif ($WhichOne -eq "Description"){
+        $StringRunDLLMeta = [string]$FileToCheck.Description
+    }
+    elseif ($WhichOne -eq "Subject"){
+        $StringRunDLLMeta = [string]$FileToCheck.Subject
+    }
+    elseif ($WhichOne -eq "Issuer"){
+        $StringRunDLLMeta = [string]$FileToCheck.Issuer
+    }
+
+    $FreqReturn = Get-FrequencyScore -Measure $StringRunDLLMeta
+    $FreqScore = $FreqReturn.FrequencyScore -replace "[()]" 
+    $FreqScore = $FreqScore -split ","
+    $FreqScore = [int]$FreqScore[0]
+
+    if ($FreqScore -le $FreqScoreTolerance){
+        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
+        $SetStyleBelow
+        $reason = "Naming for $($StringRunDLLMeta) fell outside our frequency tolerance, could be an indicator."
+        $reason
+                            
+        $whichfile = $anomalousDLLsfile
+        $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
+        $FileToCheck | Export-CSV $whichfile -Force –Append
+    }
+    else{}
+
 }
 #############################################################
 #############################################################
@@ -116,11 +193,12 @@ Function Filter-TrustedDLLs {
     $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
     $SetStyleBelow
     Write-Host("Gathering Currently Loaded Dlls...")
-    $CurrentDlls = Get-Process | Select-Object -ExpandProperty Modules | sort -Unique | Select-Object ModuleName,FileName,Size,Company,Description
+    $CurrentDlls = Get-Process | Select-Object -ExpandProperty Modules | Sort-Object -Unique | Select-Object ModuleName,FileName,Size,Company,Description
     Write-Host("Iterating Through Known Good...")
     foreach($CurrentDll in $CurrentDlls){
+
         $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-        $CurrentDllExtraMeta = Get-ChildItem $CurrentDll.FileName | Get-AuthenticodeSignature | ` Select-Object -Property ISOSBinary,SignatureType,Status,SignerCertificate
+        $CurrentDllExtraMeta = Get-ChildItem $CurrentDll.FileName -ErrorAction SilentlyContinue | Get-AuthenticodeSignature | ` Select-Object -Property ISOSBinary,SignatureType,Status,SignerCertificate
 
         #Skip if valid and in our trust list, then add to our baseline for freq analysis
         if (($CurrentDllExtraMeta.Status -eq "Valid") -and ($CurrentDllExtraMeta.SignerCertificate.Subject -in $TrustedCerts.Subject)){
@@ -159,29 +237,45 @@ Function Filter-TrustedDLLs {
                         }
                         else{
                             $SetStyleBelow
+                            $whichfile = $anomalousDLLsfile
                             $reason = "$($CurrentDllExtraMeta.Status) was not the same status as our baseline."
                             $reason
+
+                            $CurrentDll | Add-Member -Type NoteProperty -Name "reason" -Value $reason
                         }
                     }
                     #Else Company did not match
                     else{
                         $SetStyleBelow
+                        $whichfile = $anomalousDLLsfile
                         $reason = "$($CurrentDll.Company) was not the same size as our baseline. The company did not match"
                         $reason
+
+                        $CurrentDll | Add-Member -Type NoteProperty -Name "reason" -Value $reason
                     }
                 }
                 #Else we failed the Size Check
                 else{
                     $SetStyleBelow
+                    $whichfile = $anomalousDLLsfile
                     $reason = "$($CurrentDll.ModuleName) was not the same size as our baseline. Some malware appends to the end of legitamite signed DLLs."
                     $reason
+
+                    $CurrentDll | Add-Member -Type NoteProperty -Name "reason" -Value $reason
                 }
             }
             #Else the DLL matched but it failed the directory check
             else{
                 $SetStyleBelow
+                $whichfile = $anomalousDLLsfile
                 $reason = "$($CurrentDll.FileName) was in the baseline list but didn't match the directory $($BaselineDLL.FileName)."
                 $reason
+
+                $CurrentDll | Add-Member -Type NoteProperty -Name "reason" -Value $reason
+            }
+
+            if ($whichfile -eq $anomalousDLLsfile){
+                $CurrentDll | Export-CSV $whichfile -Force –Append
             }
         }
         #If $CurrentDll.ModuleName -notin $BaselineDLLs.ModuleName look for various indicators
@@ -220,52 +314,77 @@ Function Analyze-Unknowns {
     $SetStyleBelow
     Write-Host("Analyzing unknowns ...")
 
-    $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
-    $SetStyleBelow
-
     foreach($FileToCheck in $FilesToCheck){
+        $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
+        $SetStyleBelow
         $reason = "$($FileToCheck.ModuleName) Not in our valid trusted certs or baseline. Possible indicators: "
         $whichfile = $unknownDLLsfile
+        $FileToCheck | Export-CSV $whichfile -Force –Append
 
         #Hamming Frequency Analysis Against Module Name, Company, Subject, Issuer, Serial, Thumbprint
         $CheckThisLength = $FileToCheck.ModuleName.Length
         $WhichOne = "DLL Name"
-        Length-Analysis($CheckThisLength,$WhichOne)
-        Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne)
+        Length-Analysis($CheckThisLength,$WhichOne,$reason)
+        Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne,$reason)
+        Freq-Analysis($FileToCheck,$WhichOne,$reason)
 
+        #Next check company (Not part of cert info)
+        if ($FileToCheck.Company -eq $null){
+            $reason += "Company info is null. "
+            $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
+            $whichfile = $anomalousDLLsfile
+        }
+        else{
+            $CheckThisLength = $FileToCheck.Company.Length
+            $WhichOne = "Company"
+
+            Length-Analysis($CheckThisLength,$WhichOne)
+            Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne)
+            Freq-Analysis($FileToCheck,$WhichOne)
+        }
+
+        #Next check description (Not part of cert info)
+        if ($FileToCheck.Description -eq $null){
+            $reason += "Description info is null. "
+            $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
+            $whichfile = $anomalousDLLsfile
+        }
+        else{
+            $CheckThisLength = $FileToCheck.Description.Length
+            $WhichOne = "Description"
+
+            Length-Analysis($CheckThisLength,$WhichOne)
+            Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne)
+            Freq-Analysis($FileToCheck,$WhichOne)
+        }
+
+
+        #Next check certificate info, and if exists analysis meta
         if($FileToCheck.Status -eq "NotSigned"){
-            $reason = "Not signed. "
+            $reason += "Not signed. "
 
-            $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason
-            $FileToCheck | Export-CSV $whichfile -Force –Append
+            $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
+            $whichfile = $anomalousDLLsfile
         }
 
         else{
             #Invalid certs
             if(($FileToCheck.Status -ne "Valid") -and ($FileToCheck.Issuer -in $TrustedDLLs.Issuer)){
                 $reason += "Issued by a trusted issuer, but not a valid certificate. Some malware appends to legitamite DLLs. "
+                $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
                 $whichfile = $anomalousDLLsfile
             }
 
             #Invalid certs
             elseif([string]$FileToCheck.Status -ne "Valid"){
                 $reason += "Not a valid certificate. "
+                $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
                 $whichfile = $anomalousDLLsfile
-            }
-
-            if ($FileToCheck.Company -eq $null){
-                $reason += "Company info is null. "
-                $whichfile = $anomalousDLLsfile
-            }
-            else{
-                $CheckThisLength = $FileToCheck.ModuleName.Length
-                $WhichOne = "Company"
-                Length-Analysis($CheckThisLength,$WhichOne)
-                Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne)
             }
             
             if ($FileToCheck.Subject -eq $null){
                 $reason += "Subject info is null. "
+                $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
                 $whichfile = $anomalousDLLsfile
             }
             else{
@@ -273,10 +392,12 @@ Function Analyze-Unknowns {
                 $WhichOne = "Subject"
                 Length-Analysis($CheckThisLength,$WhichOne)
                 Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne)
+                Freq-Analysis($FileToCheck,$WhichOne)
             }
 
             if ($FileToCheck.Issuer -eq $null){
                 $reason += "Issuer info is null. "
+                $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
                 $whichfile = $anomalousDLLsfile
             }
             else{
@@ -284,10 +405,12 @@ Function Analyze-Unknowns {
                 $WhichOne = "Issuer"
                 Length-Analysis($CheckThisLength,$WhichOne)
                 Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne)
+                Freq-Analysis($FileToCheck,$WhichOne)
             }
 
             if ($FileToCheck.Serial -eq $null){
                 $reason += "Serial info is null. "
+                $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
                 $whichfile = $anomalousDLLsfile
             }
             else{
@@ -299,6 +422,7 @@ Function Analyze-Unknowns {
 
             if ($FileToCheck.Thumbprint -eq $null){
                 $reason += "Thumbprint info is null. "
+                $FileToCheck | Add-Member -Type NoteProperty -Name "reason" -Value $reason -Force
                 $whichfile = $anomalousDLLsfile
             }
             else{
@@ -308,7 +432,7 @@ Function Analyze-Unknowns {
                 Hamming-Analysis($FileToCheck,$TrustedDLLs,$WhichOne)
             }
         }
-        $FileToCheck | Export-CSV $whichfile -Force –Append
+        #$FileToCheck | Export-CSV $whichfile -Force –Append
     }
 }
 #############################################################
