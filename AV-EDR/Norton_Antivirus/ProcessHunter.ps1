@@ -568,13 +568,18 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
                 if ($results.message)
                 {
+                    $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+                    $SetStyleBelow
                     $skipifTrue = "True"
                     $reason = $results.message
+                    $reason
                     $whichfile = $unknownProcsfile
                     Append-CSV
                 }
             } catch {
                 if ([string]$Error[0] -eq "The remote certificate is invalid because of errors in the certificate chain: PartialChain"){
+                    $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
+                    $SetStyleBelow
                     Write-Host("Error reaching out to Echo Trails. You probably have a proxy causing this error.")
                     #Write-Warning $Error[0] #don't need this, replaced with our own message
 
@@ -586,6 +591,8 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 }
                 else{
                     Write-Warning $Error[0]
+                    $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
+                    $SetStyleBelow
                     $reason = "Error reaching Echo Trails."
                     $reason += [string] $Error[0]
                     $whichfile = $unknownProcsfile
@@ -599,13 +606,16 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             if ($skipifTrue -eq "True"){}
             elseif ($results){
                 $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+                $SetStyleBelow
                 Set-StyleChildrenProcs
                 Check-EchoTrails-ChildrenProcs($($results))
                 $results = $null
             }
             else{
-                $reason = "No baseline data"
                 $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+                $SetStyleBelow
+                $reason = "No baseline data"
+                $reason
                 Set-StyleChildrenProcs
                 
                 #Add to file
