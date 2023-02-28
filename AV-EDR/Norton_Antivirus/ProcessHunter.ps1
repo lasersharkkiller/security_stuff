@@ -562,9 +562,17 @@ Function Get-ChildProcesses { #Return all child processes for a given process
             #Test Echo Trails
             $skipifTrue = "False"
             $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
+            $results = ""
 
             try {
                 $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
+                if ($results.message)
+                {
+                    $skipifTrue = "True"
+                    $reason = $results.message
+                    $whichfile = $unknownProcsfile
+                    Append-CSV
+                }
             } catch {
                 if ([string]$Error[0] -eq "The remote certificate is invalid because of errors in the certificate chain: PartialChain"){
                     Write-Host("Error reaching out to Echo Trails. You probably have a proxy causing this error.")
@@ -573,6 +581,8 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                     $reason = "Error reaching out to Echo Trails. You probably have a proxy causing this error."
                     $whichfile = $unknownProcsfile
                     Append-CSV
+
+                    $skipifTrue = "True"
                 }
                 else{
                     Write-Warning $Error[0]
@@ -580,27 +590,29 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                     $reason += [string] $Error[0]
                     $whichfile = $unknownProcsfile
                     Append-CSV
+
+                    $skipifTrue = "True"
                 }
-
-                $skipifTrue = "True"
             }
+            finally{
 
-            if ($skipifTrue -eq "True"){Write-Host("Skipped")}
+            if ($skipifTrue -eq "True"){}
             elseif ($results){
+                $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+                Set-StyleChildrenProcs
                 Check-EchoTrails-ChildrenProcs($($results))
                 $results = $null
             }
             else{
-                    $reason = "No baseline data"
-                    #White Indicates No Baseline Data
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-                    Set-StyleChildrenProcs
+                $reason = "No baseline data"
+                $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
+                Set-StyleChildrenProcs
                 
-                    #Add to file
-                    $whichfile = $unknownProcsfile
-                    Append-CSV
+                #Add to file
+                $whichfile = $unknownProcsfile
+                Append-CSV
             }
-
+            }
         }
         
         Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth $newDepth
@@ -752,9 +764,17 @@ $rootParents | ForEach-Object {
         #Test Echo Trails
         $skipifTrue = "False"
         $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
+        $results = ""
 
         try {
             $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
+            if ($results.message)
+                {
+                    $skipifTrue = "True"
+                    $reason = $results.message
+                    $whichfile = $unknownProcsfile
+                    Append-CSV
+                }
         } 
         catch {
             if ([string]$Error[0] -eq "The remote certificate is invalid because of errors in the certificate chain: PartialChain"){
@@ -764,6 +784,8 @@ $rootParents | ForEach-Object {
                 $reason = "Error reaching out to Echo Trails. You probably have a proxy causing this error."
                 $whichfile = $unknownProcsfile
                 Append-CSV
+
+                $skipifTrue = "True"
             }
             else{
                 Write-Warning $Error[0]
@@ -771,13 +793,14 @@ $rootParents | ForEach-Object {
                 $reason += [string] $Error[0]
                 $whichfile = $unknownProcsfile
                 Append-CSV
-            }
 
-            $skipifTrue = "True"
+                $skipifTrue = "True"
+            }
         }
 
-        if($skipifTrue = "True"){Write-Host("skipped!!")}
+        if($skipifTrue = "True"){}
         elseif ($results){
+            $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
             Check-EchoTrails-ChildrenProcs($($results))
             $results = $null
         }
