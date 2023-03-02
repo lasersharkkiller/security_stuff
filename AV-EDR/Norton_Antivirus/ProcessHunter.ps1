@@ -18,21 +18,24 @@
 ### Step 18: Force running as root +
 ### Step 19: Add frequency analysis like freq.py against service names +
 ### Step 20: Logic for when Echo Trails API key errors +
-### Step 21: Add PS-Remoting
-### Step 22: After PS-Remoting, add host to Output Results
-### Step 23: Add separate module for Sigma hunting
+### Step 21: Backport to PowerShell v5
+### Step 22: Pivot to memory analysis for anomalous processes: MemProcFS? from 508 b3p121
+### Step 23: Pivot from memory files to Sandbox
 ### Step 24: Traditional AV functionality (Hash -> VT)
 ### Step 25: Add yara.exe scan? (508 b4p12)
-### Step 26: Pivot to memory analysis for anomalous processes: MemProcFS? from 508 b3p121
+### Step 26: Add PS-Remoting
+### Step 27: After PS-Remoting, add host to Output Results
+### Step 28: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
+### Step 29: Add separate module for Sigma hunting
+### Step 30: Clean up output (separate script to output results which combines results from Sandbox / VT)
+### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2 p94)
 ### Possible: PS alternative to DensityScout? / entropy analysis (508 b4p9)
 ### Possible: Add capa to flow (508 b4p14-16)?
 ### Possible: Add Long Tail analysis to anomalous results? or leave to Kansa?
 ###             -508 b2p28 and Lab 2.1 maybe port tcorr, leven, stack, rndsearch? gravejester - PS
 ### Possible: In future maybe add non-ephemeral network ports baseline? - Lab4.3 might be good reference; also lab5.2
 ### Possible: Add Get-ProcessMitigation <app> info (586 b4p23)?
-### Possible: Scheduled tasks and new services are top places to look, perhaps add analysis module? (508 b2 p94)
 ### Possible: forensics b1p60 common malware names -covered under DLLHunter? & locations? or maybe sigma rule
-### Possible: Add GUI with parameters (download-may need to offer ability to diffmerge baselines, enter Echo Trails API key, Tune the Hamming Distance, etc)
 ### Possible: Analyze prefetch files with same anomaly logic? (508 Lab 2.1) - or diffmerge prefetch with amcache to optimize redundancy?
 ### Possible: Analyze shimcache with same anomaly logic? (508 Lab 2.1) or amcache since written to registry and tracks DLL info too (508 b2p18)
 ### Possible: Service log anomalous ids to indicators? (508 b2p101)
@@ -173,7 +176,7 @@ Function Append-CSV {
         break
     }
     
-    $csvfile | Export-CSV $whichfile -Force –Append
+    $csvfile | Export-CSV -NoTypeInformation $whichfile -Append -Force
 }
 
 Function Append-CSV-EchoTrails {
@@ -199,10 +202,10 @@ Function Append-CSV-EchoTrails {
             Notes = $results.$intel
         }
     
-    $csvfile | Export-CSV $whichfile -Force –Append
+    $csvfile | Export-CSV -NoTypeInformation $whichfile -Append -Force
 }
 
-Function Append-CSV-Analysis {
+Function Append-CSVAnalysis {
     #Processes matching baseline and unknowns have regular minimal data
         
         $csvfile = [PSCustomObject]@{
@@ -217,32 +220,21 @@ Function Append-CSV-Analysis {
             Reason = $reason
         }
     
-    $csvfile | Export-CSV $whichfile -Force –Append
+    $csvfile | Export-CSV -NoTypeInformation $whichfile -Append -Force
 }
 #############################################################
 #############################################################
 #############################################################
 
-
-#############################################################
-##########Output Processes with Corresponding Style##########
-#############################################################
-$SetStyleProcName = "$($PSStyle.Foreground.BrightWhite)”; 
-$SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)”; 
-$ResetStyle = "$($PSStyle.Reset)"
-
 Function Set-StyleRootProcs {
-        $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
-
-        Write-Output "- $SetStyleProcName Name: $($_.Name)$ResetStyle"
-        Write-Output "   $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($($RunningProcess.NumberOfInstances)) Process Owner: ($($RunningProcess.Owner))$ResetStyle"
+        #Write-Output "-  Name: $($_.Name)"
+        #Write-Output "    id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($($RunningProcess.NumberOfInstances)) Process Owner: ($($RunningProcess.Owner))"
         Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
 }
 
 Function Set-StyleChildrenProcs {
-        $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
-        $retTab + "- $SetStyleProcName Name: $($_.Name) $ResetStyle"
-        $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($($RunningProcess.NumberOfInstances)) Process Owner: ($($RunningProcess.Owner)) $ResetStyle"
+        #$retTab + "-  Name: $($_.Name)"
+        #$retTab + "   id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Process Instances: ($($RunningProcess.NumberOfInstances)) Process Owner: ($($RunningProcess.Owner))"
 }
 #############################################################
 #############################################################
@@ -258,22 +250,16 @@ Function Check-EchoTrails-ChildrenProcs {
 
     #Right now it only checks the image path, not # instances or the user context
     if(($RunningProcess.Path -eq $ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $ImagePath -contains 'C:\ProgramData\')){
-            $SetStyleBelow = "$($PSStyle.Foreground.Green)"
-            $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
-
-            $retTab + "- $SetStyleProcName Name: $($_.Name) $ResetStyle"
-            $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner)) $ResetStyle"
+            #$retTab + "-  Name: $($_.Name)"
+            #$retTab + "   id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner))"
 
             #Add to file
             $whichfile = $goodProcsfile
             Append-CSV-EchoTrails($($results))
     }
     else{
-            $SetStyleBelow = "$($PSStyle.Foreground.Red)"
-            $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
-
-            $retTab + "- $SetStyleProcName Name: $($_.Name) $ResetStyle"
-            $retTab + "  $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner)) $ResetStyle"
+            #$retTab + "-  Name: $($_.Name)"
+            #$retTab + "   id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner))"
 
             #Add to file
             $whichfile = $anomalousProcsfile
@@ -287,24 +273,15 @@ Function Check-EchoTrails-RootProcs {
 
     #Right now it only checks the image path, not # instances or the user context
     if(($RunningProcess.Path -eq $ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $ImagePath -contains 'C:\ProgramData\')){
-        $SetStyleBelow = "$($PSStyle.Foreground.Green)"
-
         #Add to file
         $whichfile = $goodProcsfile
         Append-CSV-EchoTrails($($results))
     }
     else{
-        $SetStyleBelow = "$($PSStyle.Foreground.Red)"
-
         #Add to file
         $whichfile = $anomalousProcsfile
         Append-CSV-EchoTrails($($results))
     }
-    
-    $SetStyleProcName = "$($SetStyleBelow)$($PSStyle.bold)$($PSStyle.Underline)"
-
-    Write-Output "- $SetStyleProcName Name: $($_.Name)$ResetStyle"
-    Write-Output "   $SetStyleBelow id: ($($_.ProcessId)) Path: ($($RunningProcess.Path)) Instances: ($($RunningProcess.NumberOfInstances)) Owner: ($($RunningProcess.Owner))$ResetStyle"
     Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
 }
 #############################################################
@@ -321,13 +298,10 @@ Function Hamming-Analysis-Procs {
         $StringRunProcName = [string]$RunningProcess.Name
         $HammingScore = Get-HammingDistance $StringRunProcName $StringCoreProcName
         if ($HammingScore -le $HammingScoreTolerance){
-            $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-            $SetStyleBelow
             $reason = "Similar to baseline service name"
-            $reason
                             
             $whichfile = $anomalousProcsfile
-            Append-CSV-Analysis($StringCoreProcName)
+            Append-CSVAnalysis($StringCoreProcName)
             if($parentvschild = "child"){
                 Set-StyleChildrenProcs
             }
@@ -343,13 +317,10 @@ Function Length-Analysis-Procs {
         $ProcNameLength = [int]$RunningProcess.Name.Length
         
         if ($ProcNameLength -le $ProcNameLengthTolerance){
-            $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-            $SetStyleBelow
             $reason = "Short name could be an indicator."
-            $reason
                             
             $whichfile = $anomalousProcsfile
-            Append-CSV-Analysis($RunningProcess)
+            Append-CSVAnalysis($RunningProcess)
             if($parentvschild = "child"){
                 Set-StyleChildrenProcs
             }
@@ -366,13 +337,10 @@ Function Freq-Analysis {
     $FreqScore = $FreqScore -split ","
     $FreqScore = [int]$FreqScore[0]
     if ($FreqScore -le $FreqScoreTolerance){
-        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-        $SetStyleBelow
         $reason = "Naming fell outside our frequency tolerance, could be an indicator."
-        $reason
                             
         $whichfile = $anomalousProcsfile
-        Append-CSV-Analysis($RunningProcess)
+        Append-CSVAnalysis($RunningProcess)
     }
     else{}
 
@@ -387,7 +355,7 @@ Function Get-RootParentProcess {
     #Check to see if a process exists for the Parent Process ID 
     if(($process.ParentProcessID -in $allProcesses.ProcessId) -and ($process.ProcessId -ne $process.ParentProcessId)){
         #If a parent process exists, call the function again, but inspect the parent process ID to see if there is another layer in the hierarchy
-        $parentProcess = $allProcesses | Where-Object {$_.ProcessId -eq $process.ParentProcessId} | Select-object -Property Name,ProcessId,ParentProcessId,Path -Unique
+        $parentProcess = $allProcesses | Where-Object {$_.ProcessId -eq $process.ParentProcessId} | Select-object -Property Name,ProcessId,Path,HandleCount,WorkingSetSize,ParentProcessId,CreationDate,CommandLine,UserName -Unique
         Get-RootParentProcess -process $parentProcess -allProcesses $allProcesses
     }
     else{ #if no parent Process ID exists, we're looking at a root parent process
@@ -399,13 +367,14 @@ Function Get-RootParentProcess {
 Function Get-ChildProcesses { #Return all child processes for a given process
     Param($process,$allProcesses,$depth)
     $retTab = "  "*$depth
-    $children = $allProcesses | Where-Object {($_.ParentProcessId -eq $process.ProcessId) -and ($_.ProcessId -ne $process.ProcessId)} | Select-Object -Property Name,ProcessId,ParentProcessId,Path -Unique
+    $children = $allProcesses | Where-Object {($_.ParentProcessId -eq $process.ProcessId) -and ($_.ProcessId -ne $process.ProcessId)} | Select-Object -Property Name,ProcessId,Path,HandleCount,WorkingSetSize,ParentProcessId,CreationDate,CommandLine,UserName -Unique
 
     $children | ForEach-Object {
     
     $reason = ""
-    $Process = Get-CimInstance Win32_Process -Filter "name = `'$($_.Name)`'"
-    $tempNum = [string]$Process.count
+    $matchThis = $_.Name
+    $Process = $allProcesses | Where-Object {$matchThis -eq $_.Name}
+    $tempNum = [string](($Process | Measure-Object).Count)
     
     #get owner
     $pidQuery = Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE ProcessID = `'$($_.ProcessId)`'"
@@ -460,7 +429,6 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                     if (($CoreProcess.NumberOfInstances -eq 1 -and $RunningProcess.NumberOfInstances -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
                         #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                         if (($CoreProcess.UserAccount -eq "MULTIPLE" -or $CoreProcess.UserAccount -eq "HOST") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "USER" -and (($($RunningProcess.Owner)) -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE")) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE","USER" -and $CoreProcess.UserAccount -ne $null)){
-                            $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
                             $whichfile = $goodProcsfile
 
                             ###Check all loaded DLLs per proc against baseline data; note DLL baseline location separate function
@@ -479,11 +447,8 @@ Function Get-ChildProcesses { #Return all child processes for a given process
 
                                     }
                                     else{
-                                        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-                                        $SetStyleBelow
-                                        $reason += "($($loadedDLL)) is NOT in the DLL baseline list "
-                                        $reason
-                                        Write-Host("$($loadedDLL),")
+                                        $reason += "($($loadedDLL)) is NOT in the DLL baseline list for $($CoreProcess.ProcName)"
+                                        #Write-Host("$($loadedDLL),")
                                         $whichfile = $anomalousProcsfile
 
                                         Set-StyleChildrenProcs
@@ -495,17 +460,14 @@ Function Get-ChildProcesses { #Return all child processes for a given process
 
                         }
                         else{
-                            $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                             Set-StyleChildrenProcs
                             $reason = "Different User Context than expected"
-                            $reason
                             #Add to file
                             $whichfile = $anomalousProcsfile
                             Append-CSV
                         }
                     }
                     else {
-                        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
                         Set-StyleChildrenProcs
                         #Add to file
                         $whichfile = $anomalousProcsfile
@@ -514,9 +476,6 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 }
                 else{
                     $reason = "Parent Process did not match"
-                    Write-Output "($($RunningProcess.Name)) parent process ($($RunningProcess.ParentProcess)) Failed Against ($($CoreProcess.ParentProc))"
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-                    $reason
                     Set-StyleChildrenProcs
 
                     #Add to file
@@ -528,9 +487,6 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 #First check if the value was null
                 if(($RunningProcess.Path -eq $null)){
                     $reason = "Expected a Path but our query returned a null value"
-                    #$SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
-                    #$SetStyleBelow
-                    #$reason
                     #Set-StyleChildrenProcs
 
                     #Add to file
@@ -539,9 +495,6 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 }
                 else{
                     $reason = "Paths did not match"
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-                    $SetStyleBelow
-                    $reason
                     Set-StyleChildrenProcs
 
                     #Add to file
@@ -568,18 +521,13 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                 $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
                 if ($results.message)
                 {
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-                    $SetStyleBelow
                     $skipifTrue = "True"
                     $reason = $results.message
-                    $reason
                     $whichfile = $unknownProcsfile
                     Append-CSV
                 }
             } catch {
                 if ([string]$Error[0] -eq "The remote certificate is invalid because of errors in the certificate chain: PartialChain"){
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
-                    $SetStyleBelow
                     Write-Host("Error reaching out to Echo Trails. You probably have a proxy causing this error.")
                     #Write-Warning $Error[0] #don't need this, replaced with our own message
 
@@ -590,9 +538,7 @@ Function Get-ChildProcesses { #Return all child processes for a given process
                     $skipifTrue = "True"
                 }
                 else{
-                    Write-Warning $Error[0]
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
-                    $SetStyleBelow
+                    #Write-Warning $Error[0]
                     $reason = "Error reaching Echo Trails."
                     $reason += [string] $Error[0]
                     $whichfile = $unknownProcsfile
@@ -605,17 +551,12 @@ Function Get-ChildProcesses { #Return all child processes for a given process
 
             if ($skipifTrue -eq "True"){}
             elseif ($results){
-                $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-                $SetStyleBelow
                 Set-StyleChildrenProcs
                 Check-EchoTrails-ChildrenProcs($($results))
                 $results = $null
             }
             else{
-                $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
-                $SetStyleBelow
                 $reason = "No baseline data"
-                $reason
                 Set-StyleChildrenProcs
                 
                 #Add to file
@@ -640,8 +581,9 @@ $rootParents = $allProcesses | ForEach-Object {
 $rootParents | ForEach-Object {
     $reason = ""
     #Count instances
-    $Process = Get-CimInstance Win32_Process -Filter "name = `'$($_.Name)`'"
-    $tempNum = [string]$Process.count
+    $matchThis = $_.Name
+    $Process = $allProcesses | Where-Object {$matchThis -eq $_.Name}
+    $tempNum = [string](($Process | Measure-Object).Count)
 
         #get owner
         $pidQuery = Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE ProcessID = `'$($_.ProcessId)`'"
@@ -675,7 +617,6 @@ $rootParents | ForEach-Object {
 
                 #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
                 if (($CoreProcess.UserAccount -eq "MULTIPLE") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE" -or $CoreProcess.UserAccount -ne $null)){
-                        $SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
                         $whichfile = $goodProcsfile
 
                         ###Check all loaded DLLs per proc against baseline data; note DLL baseline location separate function
@@ -696,25 +637,19 @@ $rootParents | ForEach-Object {
                                     #NOT Baselineable, like svchost
                                 }
                                 else{
-                                    $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-                                    $SetStyleBelow
-                                    $reason += "($($loadedDLL)) is NOT in the DLL baseline list "
-                                    $reason
+                                    $reason += "($($loadedDLL)) is NOT in the DLL baseline list for $($CoreProcess.ProcName)"
                                     $whichfile = $anomalousProcsfile
                                     
                                 Set-StyleRootProcs
                                 }
-                            } #$reason
+                            } 
                         }
                         Append-CSV
                         #Changed from Set-StyleRootProcs to below to suppress output
                         Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
                 }
                 else{
-                        $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-                        $SetStyleBelow
                         $reason = "Different User Context than expected"
-                        $reason
                         Set-StyleRootProcs
                         
                         #Add to file
@@ -724,10 +659,7 @@ $rootParents | ForEach-Object {
 
             }
             else{
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-                    $SetStyleBelow
                     $reason = "Number of instances did not match"
-                    $reason
                     Set-StyleRootProcs
 
                     #Add to file
@@ -739,10 +671,7 @@ $rootParents | ForEach-Object {
         else{
             #First check if the value was null
             if($RunningProcess.Path -eq $null){
-                #$SetStyleBelow = "$($PSStyle.Foreground.BrightYellow)"
-                #$SetStyleBelow
-                #$reason = "Expected a Path but our query returned a null value"
-                #$reason
+                $reason = "Expected a Path but our query returned a null value"
                 Set-StyleRootProcs
 
                 #Add to file
@@ -751,10 +680,7 @@ $rootParents | ForEach-Object {
             }
 
             else{
-                    $SetStyleBelow = "$($PSStyle.Foreground.BrightRed)"
-                    $SetStyleBelow
                     $reason = "Paths did not match"
-                    $reason
                     Set-StyleRootProcs
 
                     #Add to file
@@ -798,7 +724,7 @@ $rootParents | ForEach-Object {
                 $skipifTrue = "True"
             }
             else{
-                Write-Warning $Error[0]
+                #Write-Warning $Error[0]
                 $reason = "Error reaching Echo Trails."
                 $reason += [string] $Error[0]
                 $whichfile = $unknownProcsfile
@@ -810,13 +736,11 @@ $rootParents | ForEach-Object {
 
         if($skipifTrue = "True"){}
         elseif ($results){
-            $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
             Check-EchoTrails-ChildrenProcs($($results))
             $results = $null
         }
         else{
                 #White Indicates No Baseline Data
-                $SetStyleBelow = "$($PSStyle.Foreground.BrightWhite)"
                 Set-StyleRootProcs
                 $reason = "No baseline data"
             
@@ -827,6 +751,3 @@ $rootParents | ForEach-Object {
 
     }
 }
-
-$SetStyleBelow = "$($PSStyle.Foreground.BrightGreen)"
-$SetStyleBelow
