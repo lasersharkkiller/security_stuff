@@ -18,7 +18,7 @@
 ### Step 18: Force running as root +
 ### Step 19: Add frequency analysis like freq.py against service names +
 ### Step 20: Logic for when Echo Trails API key errors +
-### Step 21: Backport to PowerShell v5
+### Step 21: Backport to PowerShell v5 +
 ### Step 22: Pivot to memory analysis for anomalous processes: MemProcFS? from 508 b3p121
 ### Step 23: Pivot from memory files to Sandbox
 ### Step 24: Traditional AV functionality (Hash -> VT)
@@ -63,7 +63,7 @@ if ($PullLatestBaseline){
 }
 
 #Define Echo Trails API Key 
-$ETkey = "<enter-api-key-here>"
+$ETkey = "<enter-api-key>"
 
 #Create / Clear our process output files
 $goodProcsfile = './output/Hunting/goodProcs.csv'
@@ -349,236 +349,10 @@ Function Freq-Analysis {
 #############################################################
 #############################################################
 
-Function Get-RootParentProcess {
-    Param($process,$allProcesses)
-
-    #Check to see if a process exists for the Parent Process ID 
-    if(($process.ParentProcessID -in $allProcesses.ProcessId) -and ($process.ProcessId -ne $process.ParentProcessId)){
-        #If a parent process exists, call the function again, but inspect the parent process ID to see if there is another layer in the hierarchy
-        $parentProcess = $allProcesses | Where-Object {$_.ProcessId -eq $process.ParentProcessId} | Select-object -Property Name,ProcessId,Path,HandleCount,WorkingSetSize,ParentProcessId,CreationDate,CommandLine,UserName -Unique
-        Get-RootParentProcess -process $parentProcess -allProcesses $allProcesses
-    }
-    else{ #if no parent Process ID exists, we're looking at a root parent process
-        #Return the root parent
-        $process
-    }
-}
-
-Function Get-ChildProcesses { #Return all child processes for a given process
-    Param($process,$allProcesses,$depth)
-    $retTab = "  "*$depth
-    $children = $allProcesses | Where-Object {($_.ParentProcessId -eq $process.ProcessId) -and ($_.ProcessId -ne $process.ProcessId)} | Select-Object -Property Name,ProcessId,Path,HandleCount,WorkingSetSize,ParentProcessId,CreationDate,CommandLine,UserName -Unique
-
-    $children | ForEach-Object {
-    
-    $reason = ""
-    $matchThis = $_.Name
-    $Process = $allProcesses | Where-Object {$matchThis -eq $_.Name}
-    $tempNum = [string](($Process | Measure-Object).Count)
-    
-    #get owner
-    $pidQuery = Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE ProcessID = `'$($_.ProcessId)`'"
-    if ($pidQuery -ne $null){
-        $owner = Invoke-CimMethod -InputObject $pidQuery -MethodName GetOwner -ErrorAction SilentlyContinue
-        $parentproc = Get-CimInstance Win32_Process -Filter "processid = `'$($_.ParentProcessID)`'"| Select-Object -Property Name,Path -Unique
-    }
-    
-    $RunningProcess = [PSCustomObject]@{
-        PSTypename      = "ProcessHunting"
-        ProcessID       = $_.ProcessID
-        Name            = $_.Name
-        Path            = $_.Path
-        Handles         = $_.HandleCount
-        WorkingSet      = $_.WorkingSetSize
-        ParentProcessID = $_.ParentProcessID
-        ParentProcess   = $parentproc.Name #these are root level procs
-        ParentPath      = $parentproc.Path #these are root level procs
-        LoadedDlls      = ""
-        Started         = $_.CreationDate
-        Owner           = "$($owner.Domain)\$($owner.user)"
-        CommandLine     = $_.Commandline
-        NumberOfInstances = $tempNum
-    }
-        #output
-        $newDepth = $depth + 1
-
-
-        if($_.Name -in $CoreProcesses.procName){
-            $runningProc = $_.Name
-            $CoreProcess = $CoreProcesses | Where-Object {$runningProc -eq $_.procName}
-    
-            #First Logic: Check the Path of the Executable. Note some values are null, especially root processes
-            if(($CoreProcess.ImagePath -eq "MULTIPLE") -or ($RunningProcess.Path -eq $CoreProcess.ImagePath) -or ($RunningProcess.Path -contains 'C:\Users\' -and $CoreProcess.ImagePath -contains 'C:\Users\') -or ($RunningProcess.Path -contains "C:\ProgramData" -and $CoreProcess.ImagePath -contains 'C:\ProgramData\')){
-
-                #Loop through values, using $MultipleParentMatch to pass to next if
-                $MultipleParentMatch = $false
-                $TestForComma = [string]$CoreProcess.parentProc
-                if($TestForComma -match (","))
-                {
-                    $tempParent = $TestForComma -split ","
-                    foreach ($line in $tempParent){
-                        if ($RunningProcess.ParentProcess -eq $line){
-                            $MultipleParentMatch = $true
-                        }
-                        else{
-                        }
-                    }
-                }
-
-                if(($CoreProcess.ParentProc -eq "MULTIPLE") -or ($RunningProcess.ParentProcess -eq $CoreProcess.ParentProc) -or ($MultipleParentMatch)){
-                    if (($CoreProcess.NumberOfInstances -eq 1 -and $RunningProcess.NumberOfInstances -eq $CoreProcess.NumberOfInstances) -or ($CoreProcess.NumberOfInstances -eq 2)) {
-                        #Note this code block mostly checks for systems that should be running specifically under SYSTEM, LOCAL SERVICE, or NETWORK SERVICE
-                        if (($CoreProcess.UserAccount -eq "MULTIPLE" -or $CoreProcess.UserAccount -eq "HOST") -or ($CoreProcess.UserAccount -eq "SYSTEM" -and $RunningProcess.Owner -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq $null -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "LOCAL SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "NETWORK SERVICE" -and ($($RunningProcess.Owner)) -eq $CoreProcess.UserAccount) -or ($CoreProcess.UserAccount -eq "USER" -and (($($RunningProcess.Owner)) -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE")) -or ($CoreProcess.UserAccount -notin "SYSTEM","LOCAL SERVICE","NETWORK SERVICE","USER" -and $CoreProcess.UserAccount -ne $null)){
-                            $whichfile = $goodProcsfile
-
-                            ###Check all loaded DLLs per proc against baseline data; note DLL baseline location separate function
-                            if($CoreProcess.LoadedDlls -eq $null){
-                                #Write-Host("($($RunningProcess.Name)) baseline loaded dlls has a null value")
-                            }
-                            elseif($CoreProcess.LoadedDlls -eq "MULTIPLE"){
-                                #NOT Baselineable, like svchost
-                            }
-                            else{
-                                $processModules = Get-Process -Id $RunningProcess.ProcessID|select modules
-                                $CoreProcess.LoadedDlls = $CoreProcess.LoadedDlls.split(",")
-                            
-                                foreach ($loadedDLL in $processModules.modules.ModuleName){
-                                    if ($loadedDLL -in $CoreProcess.LoadedDlls){
-
-                                    }
-                                    else{
-                                        $reason += "($($loadedDLL)) is NOT in the DLL baseline list for $($CoreProcess.ProcName)"
-                                        #Write-Host("$($loadedDLL),")
-                                        $whichfile = $anomalousProcsfile
-
-                                        Set-StyleChildrenProcs
-                                    }
-                            }
-                        }
-                        Append-CSV
-                        #No longer Set-StyleChildrenProcs to below to suppress output
-
-                        }
-                        else{
-                            Set-StyleChildrenProcs
-                            $reason = "Different User Context than expected"
-                            #Add to file
-                            $whichfile = $anomalousProcsfile
-                            Append-CSV
-                        }
-                    }
-                    else {
-                        Set-StyleChildrenProcs
-                        #Add to file
-                        $whichfile = $anomalousProcsfile
-                        Append-CSV
-                    }
-                }
-                else{
-                    $reason = "Parent Process did not match"
-                    Set-StyleChildrenProcs
-
-                    #Add to file
-                    $whichfile = $anomalousProcsfile
-                    Append-CSV
-                }
-            }
-            else{
-                #First check if the value was null
-                if(($RunningProcess.Path -eq $null)){
-                    $reason = "Expected a Path but our query returned a null value"
-                    #Set-StyleChildrenProcs
-
-                    #Add to file
-                    $whichfile = $fullDataNotReturnedProcs
-                    Append-CSV($reason)
-                }
-                else{
-                    $reason = "Paths did not match"
-                    Set-StyleChildrenProcs
-
-                    #Add to file
-                    $whichfile = $anomalousProcsfile
-                    Append-CSV
-                }
-            }
-        }
-        #else for if($_.Name -in $CoreProcesses.procName)
-        else{
-
-            #Before checking Echo Trails, analyze name frequency against baseline procs
-            $parentvschild = "child"
-            Hamming-Analysis-Procs($parentvschild)
-            Length-Analysis-Procs($parentvschild)
-            Freq-Analysis($parentvschild)
-
-            #Test Echo Trails
-            $skipifTrue = "False"
-            $tempUri = 'https://api.echotrail.io/v1/private/insights/' + $_.Name
-            $results = ""
-
-            try {
-                $results = Invoke-RestMethod -Headers @{'X-Api-key' = $ETkey} -Uri $tempUri
-                if ($results.message)
-                {
-                    $skipifTrue = "True"
-                    $reason = $results.message
-                    $whichfile = $unknownProcsfile
-                    Append-CSV
-                }
-            } catch {
-                if ([string]$Error[0] -eq "The remote certificate is invalid because of errors in the certificate chain: PartialChain"){
-                    Write-Host("Error reaching out to Echo Trails. You probably have a proxy causing this error.")
-                    #Write-Warning $Error[0] #don't need this, replaced with our own message
-
-                    $reason = "Error reaching out to Echo Trails. You probably have a proxy causing this error."
-                    $whichfile = $unknownProcsfile
-                    Append-CSV
-
-                    $skipifTrue = "True"
-                }
-                else{
-                    #Write-Warning $Error[0]
-                    $reason = "Error reaching Echo Trails."
-                    $reason += [string] $Error[0]
-                    $whichfile = $unknownProcsfile
-                    Append-CSV
-
-                    $skipifTrue = "True"
-                }
-            }
-            finally{
-
-            if ($skipifTrue -eq "True"){}
-            elseif ($results){
-                Set-StyleChildrenProcs
-                Check-EchoTrails-ChildrenProcs($($results))
-                $results = $null
-            }
-            else{
-                $reason = "No baseline data"
-                Set-StyleChildrenProcs
-                
-                #Add to file
-                $whichfile = $unknownProcsfile
-                Append-CSV
-            }
-            }
-        }
-        
-        Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth $newDepth
-
-    }
-}
-
 Write-Output("Beginning Running Process Analysis...")
 $allProcesses = Get-CimInstance -ClassName Win32_Process | Select-Object -Property Name,ProcessId,Path,HandleCount,WorkingSetSize,ParentProcessId,CreationDate,CommandLine,UserName
 
-$rootParents = $allProcesses | ForEach-Object {
-    Get-RootParentProcess -process $_ -allProcesses $allProcesses
-} | Select-object -Property Name,ProcessId,Path,HandleCount,WorkingSetSize,ParentProcessId,CreationDate,CommandLine,UserName -Unique
-
-$rootParents | ForEach-Object {
+$allProcesses | ForEach-Object {
     $reason = ""
     #Count instances
     $matchThis = $_.Name
@@ -588,7 +362,6 @@ $rootParents | ForEach-Object {
         #get owner
         $pidQuery = Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE ProcessID = `'$($_.ProcessId)`'"
         $owner = Invoke-CimMethod -InputObject $pidQuery -MethodName GetOwner
-        #$parent = Get-Process -Id $item.ParentprocessID #these are root level procs
         $RunningProcess = [PSCustomObject]@{
             PSTypename      = "ProcessHunting"
             ProcessID       = $_.ProcessID
@@ -597,8 +370,8 @@ $rootParents | ForEach-Object {
             Handles         = $_.HandleCount
             WorkingSet      = $_.WorkingSetSize
             ParentProcessID = $_.ParentProcessID
-            #ParentProcess   = $parent.Name #these are root level procs
-            #ParentPath      = $parent.Path #these are root level procs
+            ParentProcess   = $parent.Name #these are root level procs
+            ParentPath      = $parent.Path #these are root level procs
             LoadedDlls      = ""
             Started         = $_.CreationDate
             Owner           = "$($owner.Domain)\$($owner.user)"
@@ -640,17 +413,17 @@ $rootParents | ForEach-Object {
                                     $reason += "($($loadedDLL)) is NOT in the DLL baseline list for $($CoreProcess.ProcName)"
                                     $whichfile = $anomalousProcsfile
                                     
-                                Set-StyleRootProcs
+                                #Set-StyleRootProcs
                                 }
                             } 
                         }
                         Append-CSV
                         #Changed from Set-StyleRootProcs to below to suppress output
-                        Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
+                        #Get-ChildProcesses -process $_ -allProcesses $allProcesses -depth 1
                 }
                 else{
                         $reason = "Different User Context than expected"
-                        Set-StyleRootProcs
+                        #Set-StyleRootProcs
                         
                         #Add to file
                         $whichfile = $anomalousProcsfile
@@ -660,7 +433,7 @@ $rootParents | ForEach-Object {
             }
             else{
                     $reason = "Number of instances did not match"
-                    Set-StyleRootProcs
+                    #Set-StyleRootProcs
 
                     #Add to file
                     $whichfile = $anomalousProcsfile
@@ -672,7 +445,7 @@ $rootParents | ForEach-Object {
             #First check if the value was null
             if($RunningProcess.Path -eq $null){
                 $reason = "Expected a Path but our query returned a null value"
-                Set-StyleRootProcs
+                #Set-StyleRootProcs
 
                 #Add to file
                 $whichfile = $fullDataNotReturnedProcs
@@ -681,7 +454,7 @@ $rootParents | ForEach-Object {
 
             else{
                     $reason = "Paths did not match"
-                    Set-StyleRootProcs
+                    #Set-StyleRootProcs
 
                     #Add to file
                     $whichfile = $anomalousProcsfile
@@ -741,7 +514,7 @@ $rootParents | ForEach-Object {
         }
         else{
                 #White Indicates No Baseline Data
-                Set-StyleRootProcs
+                #Set-StyleRootProcs
                 $reason = "No baseline data"
             
                 #Add to file
