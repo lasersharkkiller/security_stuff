@@ -4,12 +4,12 @@
 ### Step 4: VT Query +
 ### Step 5: malfind
 ### Step 6: ThreatGrid query +
-### Step 7: ThreatGrid logic to see if file already submitted
-### Step 8: NSRL Query - https://github.com/Status-418/nsrl-api
-### Step 9: Filescan.io?
+### Step 7: ThreatGrid logic to see if file already submitted +
+### Step 8: NSRL Query + Needs expansion later
+### Step 9: Filescan.io - waiting to hear back on full report details
 ### Step 10: Detect if proxy set up
 ### Step 10: Bstrings? or maybe fireeye floss?
-### Step 11: yarascan?
+### Step 11: yarascan? -maybe just use FileScan.io to optimize
 ### Step 12: Clean up
 ### Step 13: files? 508 b3p83
 ### Step 14: Shellbags? volatility -f victim.raw --profile=Win7SP1x64 shellbags
@@ -27,6 +27,9 @@ if($test){}else{Install-Module -Name 7Zip4Powershell -Scope CurrentUser -Force}
 
 #Add in modules
 . ./modules/Check-VirusTotal.ps1
+. ./modules/Check-NSRL.ps1
+. ./modules/Check-FileScanIoHash.ps1
+. ./modules/Check-ThreatGridHash.ps1
 . ./modules/Submit-ToThreatGrid.ps1
 
 #Create folders if they don't exist
@@ -34,7 +37,7 @@ New-Item -ItemType Directory -Path C:\temp\proc\ -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path C:\temp\TG-Submissions\ -ErrorAction SilentlyContinue
 
 #Imports
-$TrustedCerts = Import-Csv -Path ./baselines/TrustedCerts.csv #for bypassing
+$TrustedCerts = Import-Csv -Path ./baselines/TrustedCerts.csv #for bypassing, combine w/authenticode check
 $AnomolousProcs = Import-Csv -Path ./output/Hunting/anomalousProcs.csv
 $AnomolousProcsOptimized = @()
 $AnomolousDLLsOptimized = @()
@@ -59,30 +62,55 @@ Function Analyze-DLLsFull {
                 #Skip Valid and in Trusted Certs
             }
             else{
-                $VTPositives = Check-VirusTotal($dll)
-                $dll[5]
-                Write-Host("$($dll[4]) has $($VTPositives) hits on VT.")
-
-                ###NSRL Query
-                
-                #TG
-                $pattern = "*pid.$($dll[0]).$($dll[4])*"
-                $BeforeName = Get-Childitem -Path "C:\temp\proc" -Filter $pattern | Select Name
-                
-                $pattern = "C:\temp\proc$($pattern)"
-                if($BeforeName.Name.Count -eq 1){
-                    Rename-Item "C:\temp\proc\$($BeforeName.Name)" $dll[4] -ErrorAction SilentlyContinue
+                #For now check the small NSRL .xlsx, but needs to set up SQL instance
+                Write-Host("Entering NSRLCheck")
+                $NSRLCheck = Check-NSRL($dll)
+                if ($NSRLCheck -eq $true)
+                {
+                    #If it is in the NSRL skip, it's known good
+                    break;
                 }
                 else{
-                    Rename-Item "C:\temp\proc\$($BeforeName.Name[0])" $dll[4] -ErrorAction SilentlyContinue
-                }
+                    $VTPositives = Check-VirusTotal($dll)
+                    if($dll[4] -eq 0){
+                        Write-Host("$($dll[4]) has $($VTPositives) hits on VT.")
+                    }
+                    
                 
-                $DLLPath = "C:\temp\proc\$($dll[4])"
-                Submit-ToThreatGrid($DLLPath)
+                    #TG
+                    #First we check the original hash to see if it exists
+                    $DLLPath
+                    $threatScore = Check-ThreatGridHash($DLLPath)
+                    $threatScore
 
+                    if($threatScore){
+                        #skip
+                    }
+                    else{
+                        <#
+                        #The we check the zipped hash to see 
+                        $DLLPath = "C:\temp\proc\$($dll[4])"
+                        Check-ThreatGridHash($DLLPath)
 
-                #bstrings?
-                #report?
+                        $pattern = "*pid.$($dll[0]).$($dll[4])*"
+                        $BeforeName = Get-Childitem -Path "C:\temp\proc" -Filter $pattern | Select Name
+                
+                        $pattern = "C:\temp\proc$($pattern)"
+                        if($BeforeName.Name.Count -eq 1){
+                            Rename-Item "C:\temp\proc\$($BeforeName.Name)" $dll[4] -ErrorAction SilentlyContinue
+                        }
+                        else{
+                            Rename-Item "C:\temp\proc\$($BeforeName.Name[0])" $dll[4] -ErrorAction SilentlyContinue
+                        }
+
+                        Submit-ToThreatGrid($DLLPath)
+                    #>
+                    }
+                    
+                    #bstrings?
+                    #report?
+                }
+
             }
         }
         else{
