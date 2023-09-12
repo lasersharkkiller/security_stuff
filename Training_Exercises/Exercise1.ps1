@@ -9,8 +9,8 @@ $pickRandom = Get-Random -Minimum 0 -Maximum 10
 
 $Exercise1exe = $strarry[$pickRandom]
 
-#This assume putty.exe is in the same folder as your script
-Copy-Item putty.exe $strarry[$pickRandom]
+#This assume apt170Unsigned.exe is in the same folder as your script
+Copy-Item apt170Unsigned.exe $strarry[$pickRandom]
 #Run
 Start-Sleep -Milliseconds 3000
 Invoke-Expression -Command ".\$($Exercise1exe)"
