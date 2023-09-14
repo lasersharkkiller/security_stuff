@@ -29,6 +29,6 @@ foreach($CurrentDll in $CurrentDlls){
     
 }
 echo "############################################"
-echo "### Certs Not Validated by Authenticode: ###"
+echo "############### svchost Info ###############"
 echo "############################################"
-$AppendedList | Where-Object {$_.ModuleName -contains "svchost.exe"} | ` Select-Object -Property ModuleName,Status
+$AppendedList | Where-Object {$_.ModuleName -contains "svchost.exe"} | Select-Object
