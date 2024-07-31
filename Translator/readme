@@ -4,3 +4,4 @@ https://alphacephei.com/vosk/models
 Download the MarianMT translator:
 Helsinki-NLP/opus-mt-zh-en model for Chinese to English translation.
 
+This script captures Mandarin speech, transcribes it to Mandarin text using Vosk, and then translates the text to English using MarianMT, all offline.Notes:Ensure you have enough system resources (CPU, RAM) as running both speech recognition and translation models locally can be resource-intensive.MarianMT might not be as accurate as Google Translate for complex translations, but it works well for many use cases.If you encounter performance issues, you may need to optimize or use a more powerful machine.
