@@ -2,7 +2,7 @@ Downoad the Vosk model:
 https://alphacephei.com/vosk/models
 
 Download the MarianMT translator:
-Helsinki-NLP/opus-mt-zh-en model for Chinese to English translation.
+huggingface.co/Helsinki-NLP/opus-mt-zh-en model for Chinese to English translation.
 
 This script captures Mandarin speech, transcribes it to Mandarin text using Vosk, and then translates the text to English using MarianMT, all offline.
 Notes:
