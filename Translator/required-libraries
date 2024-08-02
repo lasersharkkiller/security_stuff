@@ -8,3 +8,4 @@ sudo apt install python3-pip
 pip3 install transformers torch --cache-dir=Downloads/
 pip3 install sentencepiece
 sudo apt-get install libportaudio2
+pip3 install vosk
