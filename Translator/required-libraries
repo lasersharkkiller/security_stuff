@@ -7,4 +7,4 @@ sudo lvextend -r -l +100%FREE /dev/mapper/ubintu--vg-ububtu--lv
 sudo apt install python3-pip
 pip3 install transformers torch --cache-dir=Downloads/
 pip3 install sentencepiece
-pip3 install sounddevice --user
+sudo apt-get install libportaudio2
