@@ -26,4 +26,31 @@ def transcribe_audio():
         transcript = recognizer.recognize_google(audio)
         return transcript
     except sr.UnknownValueError:
-        print("Google Speech
+        print("Google Speech Recognition could not understand audio")
+        return ""
+    except sr.RequestError as e:
+        print(f"Could not request results from Google Speech Recognition service; {e}")
+        return ""
+
+def translate_text(text, target_language='es'):
+    """Translate the transcribed text to the target language using googletrans."""
+    translator = Translator()
+    translation = translator.translate(text, dest=target_language)
+    return translation.text
+
+def process_video_file():
+    """Process the MP4 file: extract audio, transcribe, and translate."""
+    print("Extracting audio from video...")
+    extract_audio_from_video()
+    
+    print("Transcribing audio...")
+    transcript = transcribe_audio()
+    print("Transcript:", transcript)
+    
+    if transcript:
+        print("Translating transcript...")
+        translated_text = translate_text(transcript)
+        print("Translated Text:", translated_text)
+
+if __name__ == "__main__":
+    process_video_file()
