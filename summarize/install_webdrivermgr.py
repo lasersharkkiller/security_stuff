@@ -13,6 +13,6 @@ driver = webdriver.Chrome(
 )
 
 driver.get("https://example.com")
-print("✅ Title:", driver.title)  # Should print "Example Domain"
+print("Title:", driver.title)  # Should print "Example Domain"
 
 driver.quit()
