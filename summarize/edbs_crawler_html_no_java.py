@@ -1,3 +1,4 @@
+#Discovered first technique only analysis initial html, not Javascript after
 import os
 import re
 import requests
