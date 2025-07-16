@@ -1,53 +1,46 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 import time
-import os
 
-# --- CONFIG ---
-BASE_URL = "https://site.com"
-TARGET_PAGE = "https://site.com/protected-page"  # Change if needed
-PASSWORD = "X"
-OUTPUT_FILE = "edbs_rendered_text.txt"
-WAIT_TIME = 10  # seconds
-# --------------
+# --- Your svSession cookie here ---
+svsession_value = "YOUR_SVSESSION_VALUE_HERE"
+base_url = "https://edbsportal.com"
+output_file = "edbs_loggedin_text.txt"
 
+# Set up browser
 options = Options()
 options.add_argument("--headless")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-gpu")
-
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 try:
-    # Visit homepage or login page
-    driver.get(BASE_URL)
-    time.sleep(3)
+    # Load the site once to set the cookie domain
+    driver.get(base_url)
+    time.sleep(2)
 
-    # Locate password input (adjust selector if needed)
-    try:
-        password_input = driver.find_element(By.XPATH, "//input[@type='password']")
-        password_input.send_keys(PASSWORD)
-        password_input.submit()
-        print("🔐 Password submitted")
-        time.sleep(WAIT_TIME)
-    except Exception as e:
-        print("⚠️ Couldn't find password field (might already be logged in?):", e)
+    # Inject the svSession cookie
+    driver.add_cookie({
+        "name": "svSession",
+        "value": svsession_value,
+        "domain": ".edbsportal.com",  # note the leading dot
+        "path": "/"
+    })
 
-    # Visit target page
-    driver.get(TARGET_PAGE)
-    time.sleep(WAIT_TIME)
+    print(" Cookie injected. Reloading site...")
 
-    # Extract visible text from the page
+    # Reload the site (you should now be authenticated)
+    driver.get(base_url)
+    time.sleep(5)
+
+    # Grab visible text
     page_text = driver.find_element(By.TAG_NAME, "body").text
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+    print("Page content:\n", page_text[:1000])
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write(page_text)
-
-    print(f"✅ Page text saved to {OUTPUT_FILE}")
-    print("Preview:\n" + "-"*40)
-    print(page_text[:1000], "...\n")
 
 finally:
     driver.quit()
