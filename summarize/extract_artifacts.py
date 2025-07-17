@@ -6,6 +6,9 @@ import ipaddress
 from pathlib import Path
 from time import sleep
 from dotenv import load_dotenv
+from colorama import Fore, Style, init
+
+init(autoreset=True)
 
 # === LOAD .env ===
 load_dotenv()
@@ -19,21 +22,16 @@ if not APIKEY:
 SLEEP_TIME = 1
 OUTPUT_JSON = "apivoid_results.json"
 CURRENT_DIR = Path('.')
+BLACKLISTED_DOMAINS = {"proton.me"}
 
-# === PUBLIC TLD LIST (from IANA root zone) ===
+# === PUBLIC TLD LIST (shortened for space — you can expand) ===
 VALID_TLDS = {
-    'com','org','net','int','edu','gov','mil','co','io','ai','info','biz','us','uk','de','fr','ca',
-    'au','cn','jp','kr','es','br','tv','me','xyz','site','tech','dev','app','online','store','pro',
-    'name','club','live','cloud','digital','media','today','news','services','solutions','support',
-    'systems','world','zone','in','it','ru','ch','se','no','nl','pl','eu','be','at','nz','mx','za',
-    'tr','id','sg','ph','hk','tw','vn','ir','sa','ae','il','pt','gr','cz','hu','fi','ro','sk','bg',
-    'lt','lv','ee','hr','si','rs','ba','ge','am','kz','by','ua','pk','bd','lk','np','th','my','kh',
-    'mm','la','af','uz','tm','mn','kg','tj','az','iq','sy','ye','jo','lb','om','qa','kw','bh','dz',
-    'ma','tn','eg','ng','ke','gh','ug','tz','cm','sn','ci','zm','zw','mw','ml','ne','bw','na','ao',
-    'et','so','sd','ss','cd','cg','ga','gn','gm','sl','lr','bi','rw','dj','er'
+    'com', 'org', 'net', 'edu', 'gov', 'mil', 'co', 'io', 'ai', 'info', 'biz',
+    'me', 'uk', 'us', 'ca', 'au', 'de', 'fr', 'it', 'in', 'ru', 'cn', 'br',
+    'xyz', 'site', 'tech', 'dev', 'app', 'store', 'online', 'tv', 'live'
 }
 
-# === REGEX PATTERNS ===
+# === REGEX ===
 IP_REGEX = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
 DOMAIN_REGEX = r'\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b'
 
@@ -45,8 +43,26 @@ def is_public_ip(ip):
         return False
 
 def is_valid_domain(domain):
-    parts = domain.lower().split('.')
-    return len(parts) >= 2 and parts[-1] in VALID_TLDS
+    parts = domain.strip().lower().split('.')
+    if len(parts) < 2:
+        return False
+    tld = parts[-1]
+    sld = parts[-2]
+    if tld not in VALID_TLDS:
+        return False
+    if len(sld) < 2 or sld.istitle():
+        return False
+    if domain in BLACKLISTED_DOMAINS:
+        return False
+    return True
+
+def colorize(score):
+    if score == 0:
+        return Fore.GREEN
+    elif score == 100:
+        return Fore.RED
+    else:
+        return Fore.YELLOW
 
 # === STORAGE ===
 ips = set()
@@ -70,33 +86,45 @@ filtered_domains = {
 
 # === APIVOID LOOKUPS ===
 def query_apivoid_ip(ip):
-    url = f"https://endpoint.apivoid.com/iprep/v1/pay-as-you-go/?key={APIKEY}&ip={ip}"
+    url = f"https://api.apivoid.com/v2/ip-reputation?key={APIKEY}&ip={ip}"
     r = requests.get(url)
     if r.ok:
         data = r.json().get("data", {}).get("report", {})
+        score = data.get("risk_analysis", {}).get("risk_score", {}).get("result", 0)
+        color = colorize(score)
+        print(f"{color}[IP] {ip} → Threat Score: {score}{Style.RESET_ALL}")
+
         results["ips"].append({
             "ip": ip,
+            "threat_score": score,
             "blacklist_hits": data.get("blacklists", {}).get("engines_count", "N/A"),
             "asn": data.get("information", {}).get("asn", "N/A"),
             "country": data.get("information", {}).get("country_name", "N/A"),
             "threat_category": data.get("risk_analysis", {}).get("risk_score_result", {}).get("category", "N/A")
         })
     else:
+        print(f"{Fore.RED}[IP] {ip} → Error: {r.status_code} - {r.text}")
         results["ips"].append({"ip": ip, "error": f"{r.status_code} - {r.text}"})
 
 
 def query_apivoid_domain(domain):
-    url = f"https://endpoint.apivoid.com/domainbl/v1/pay-as-you-go/?key={APIKEY}&host={domain}"
+    url = f"https://api.apivoid.com/v2/domain-reputation?key={APIKEY}&host={domain}"
     r = requests.get(url)
     if r.ok:
         data = r.json().get("data", {}).get("report", {})
+        score = data.get("risk_score", {}).get("result", 0)
+        color = colorize(score)
+        print(f"{color}[DOMAIN] {domain} → Threat Score: {score}{Style.RESET_ALL}")
+
         results["domains"].append({
             "domain": domain,
+            "threat_score": score,
             "blacklist_hits": data.get("blacklists", {}).get("engines_count", "N/A"),
             "server_ip": data.get("server", {}).get("ip", "N/A"),
             "threat_category": data.get("risk_score", {}).get("category", "N/A")
         })
     else:
+        print(f"{Fore.RED}[DOMAIN] {domain} → Error: {r.status_code} - {r.text}")
         results["domains"].append({"domain": domain, "error": f"{r.status_code} - {r.text}"})
 
 
