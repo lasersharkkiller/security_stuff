@@ -19,14 +19,13 @@ CURRENT_DIR = Path(".")
 OUTPUT_FILE = "ipinfo_results.json"
 SLEEP_TIME = 1
 
-# === VALID TLDs and Blacklist ===
+# === TLD WHITELIST ===
 VALID_TLDS = {
     'com','org','net','edu','gov','mil','co','io','ai','info','biz','us','uk','de','fr','ca',
     'au','cn','jp','kr','es','br','tv','me','xyz','site','tech','dev','app','online','store',
     'pro','name','club','live','cloud','digital','media','today','news','services','solutions',
     'support','systems','world','zone','in','it','ru'
 }
-BLACKLISTED_DOMAINS = {"proton.me"}
 
 # === REGEX ===
 IP_REGEX = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
@@ -40,15 +39,13 @@ def is_public_ip(ip):
         return False
 
 def is_valid_domain(domain):
-    domain = domain.strip()
-    if domain.lower() in BLACKLISTED_DOMAINS:
-        return False
+    domain = domain.strip().lower()
     if domain.count('.') < 1:
         return False
-    if any(p[0].isupper() for p in domain.split('.')):
+    parts = domain.split('.')
+    if any(p.isdigit() for p in parts[:-1]):
         return False
-    parts = domain.lower().split('.')
-    if len(parts) < 2:
+    if any(p[0].isupper() for p in domain.split('.')):
         return False
     tld = parts[-1]
     return tld in VALID_TLDS
@@ -107,6 +104,7 @@ all_ips = set()
 all_domains = set()
 results = []
 
+# Extract from all .txt files in current folder
 for file in CURRENT_DIR.glob("*.txt"):
     with open(file, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
