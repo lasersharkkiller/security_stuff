@@ -5,12 +5,20 @@ import requests
 import ipaddress
 from pathlib import Path
 from time import sleep
+from dotenv import load_dotenv
+
+# === LOAD API KEY FROM .env ===
+load_dotenv()
+APIKEY = os.getenv("APIVOID_API_KEY")
+
+if not APIKEY:
+    print(" APIVOID_API_KEY not found in .env file.")
+    exit(1)
 
 # === CONFIGURATION ===
-APIKEY = 'your_apivoid_api_key_here'  # 🔧 Replace this with your real API key
-RESULTS_DIR = Path("results")         # Folder where .txt files are saved
-SLEEP_TIME = 1                        # Seconds between API calls to avoid rate-limiting
-OUTPUT_JSON = "apivoid_results.json"  # Where results will be saved
+SLEEP_TIME = 1                        # Throttle API calls to avoid rate limiting
+OUTPUT_JSON = "apivoid_results.json"  # Output filename
+CURRENT_DIR = Path('.')               # Current working directory
 
 # === REGEX PATTERNS ===
 IP_REGEX = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
@@ -29,7 +37,7 @@ def is_public_ip(ip):
         return False
 
 # === PARSE TXT FILES ===
-for file in RESULTS_DIR.glob("*.txt"):
+for file in CURRENT_DIR.glob("*.txt"):
     with open(file, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
         ips.update(re.findall(IP_REGEX, content))
