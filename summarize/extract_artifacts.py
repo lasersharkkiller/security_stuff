@@ -19,6 +19,15 @@ CURRENT_DIR = Path(".")
 OUTPUT_FILE = "ipinfo_results.json"
 SLEEP_TIME = 1
 
+# === VALID TLDs and Blacklist ===
+VALID_TLDS = {
+    'com','org','net','edu','gov','mil','co','io','ai','info','biz','us','uk','de','fr','ca',
+    'au','cn','jp','kr','es','br','tv','me','xyz','site','tech','dev','app','online','store',
+    'pro','name','club','live','cloud','digital','media','today','news','services','solutions',
+    'support','systems','world','zone','in','it','ru'
+}
+BLACKLISTED_DOMAINS = {"proton.me"}
+
 # === REGEX ===
 IP_REGEX = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
 DOMAIN_REGEX = r'\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b'
@@ -29,6 +38,20 @@ def is_public_ip(ip):
         return ipaddress.ip_address(ip).is_global
     except:
         return False
+
+def is_valid_domain(domain):
+    domain = domain.strip()
+    if domain.lower() in BLACKLISTED_DOMAINS:
+        return False
+    if domain.count('.') < 1:
+        return False
+    if any(p[0].isupper() for p in domain.split('.')):
+        return False
+    parts = domain.lower().split('.')
+    if len(parts) < 2:
+        return False
+    tld = parts[-1]
+    return tld in VALID_TLDS
 
 def resolve_domain(domain):
     try:
@@ -91,10 +114,10 @@ for file in CURRENT_DIR.glob("*.txt"):
         all_domains.update(re.findall(DOMAIN_REGEX, content))
 
 public_ips = {ip for ip in all_ips if is_public_ip(ip)}
-valid_domains = {d for d in all_domains if not re.match(IP_REGEX, d)}
+valid_domains = {d for d in all_domains if not re.match(IP_REGEX, d) and is_valid_domain(d)}
 
 print(f" Found {len(public_ips)} unique public IPs")
-print(f" Found {len(valid_domains)} domains")
+print(f" Found {len(valid_domains)} valid domains")
 
 # === Process IPs ===
 for ip in sorted(public_ips):
@@ -102,7 +125,7 @@ for ip in sorted(public_ips):
     av = query_apivoid(ip)
     score = av.get("threat_score", 0)
     color = colorize_score(score)
-    print(f"{color}[IP] {ip} → Threat Score: {score}, Country: {geo.get('country')} / ASN: {geo.get('asn')}{Style.RESET_ALL}")
+    print(f"{color}[IP] {ip} → Score: {score}, Country: {geo.get('country')} / ASN: {geo.get('asn')}{Style.RESET_ALL}")
     results.append({
         "ip": ip,
         "source": "direct",
@@ -119,7 +142,7 @@ for domain in sorted(valid_domains):
         av = query_apivoid(resolved_ip)
         score = av.get("threat_score", 0)
         color = colorize_score(score)
-        print(f"{color}[DOMAIN] {domain} → {resolved_ip} → Threat Score: {score}, Country: {geo.get('country')} / ASN: {geo.get('asn')}{Style.RESET_ALL}")
+        print(f"{color}[DOMAIN] {domain} → {resolved_ip} → Score: {score}, Country: {geo.get('country')} / ASN: {geo.get('asn')}{Style.RESET_ALL}")
         results.append({
             "domain": domain,
             "ip": resolved_ip,
