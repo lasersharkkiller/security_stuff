@@ -2,162 +2,153 @@ import os
 import re
 import json
 import socket
+import base64
+import hashlib
 import ipaddress
-import requests
 from pathlib import Path
-from time import sleep
-from dotenv import load_dotenv
-from colorama import Fore, Style, init
 
-# === INIT ===
-init(autoreset=True)
-load_dotenv()
+try:
+    from colorama import Fore, Style, init
+    init(autoreset=True)
+except ImportError:
+    class Dummy:
+        def __getattr__(self, attr): return ''
+    Fore = Style = Dummy()
 
-# === CONFIGURATION ===
-APIKEY = os.getenv("APIVOID_API_KEY")
+# === Setup ===
 CURRENT_DIR = Path(".")
-OUTPUT_FILE = "ipinfo_results.json"
-SLEEP_TIME = 1
+DECODED_DIR = CURRENT_DIR / "decoded"
+DECODED_DIR.mkdir(exist_ok=True)
+OUTPUT_FILE = "decoded_analysis_results.json"
 
-# === TLD WHITELIST ===
-VALID_TLDS = {
-    'com','org','net','edu','gov','mil','co','io','ai','info','biz','us','uk','de','fr','ca',
-    'au','cn','jp','kr','es','br','tv','me','xyz','site','tech','dev','app','online','store',
-    'pro','name','club','live','cloud','digital','media','today','news','services','solutions',
-    'support','systems','world','zone','in','it','ru'
-}
-
-# === REGEX ===
+# === Patterns ===
 IP_REGEX = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
 DOMAIN_REGEX = r'\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b'
+HEX_SHELLCODE_REGEX = r'(?:\\x[0-9a-fA-F]{2}){4,}'
+RAW_HEX_BLOB_REGEX = r'\b(?:[0-9a-fA-F]{8,})\b'
+BASE64_REGEX = r'(?<![\w+/=])(?:[A-Za-z0-9+/]{20,}={0,2})(?![\w+/=])'
+ASM_KEYWORDS = ['mov', 'jmp', 'call', 'xor', 'push', 'pop', 'ret', 'int', 'syscall']
 
-# === UTILITIES ===
+HEURISTIC_PATTERNS = {
+    "password_grabber": [
+        r'(?i)grab(pass(word)?|cred|token)',
+        r'(?i)get(stored)?(password|credentials|secrets)',
+        r'(?i)chrome.*(password|login)',
+        r'(?i)firefox.*(password|login)',
+        r'(?i)edge.*(password|login)',
+        r'(?i)outlook.*(password|token)',
+        r'(?i)browser.*(password|credentials)',
+    ],
+    "keylogger": [
+        r'(?i)keylogger',
+        r'(?i)GetAsyncKeyState',
+        r'(?i)GetForegroundWindow',
+        r'(?i)GetWindowText',
+        r'(?i)keyboard hook',
+        r'(?i)setwindows(hook)?ex',
+        r'(?i)GetKeyState',
+        r'(?i)LowLevelKeyboardProc'
+    ]
+}
+
+MEMORY_HOOK_PATTERNS = [
+    r'(?i)SetWindowsHookEx',
+    r'(?i)GetAsyncKeyState',
+    r'(?i)GetForegroundWindow',
+    r'(?i)GetWindowText',
+    r'(?i)GetKeyState',
+    r'(?i)LowLevelKeyboardProc',
+    r'(?i)CreateRemoteThread',
+    r'(?i)VirtualAlloc(Ex)?',
+    r'(?i)WriteProcessMemory',
+    r'(?i)NtQuerySystemInformation',
+    r'(?i)EnumWindows',
+    r'(?i)ReadProcessMemory'
+]
+
+# === Utilities ===
 def is_public_ip(ip):
     try:
         return ipaddress.ip_address(ip).is_global
     except:
         return False
 
-def is_valid_domain(domain):
-    domain = domain.strip().lower()
-    if domain.count('.') < 1:
-        return False
-    parts = domain.split('.')
-    if any(p.isdigit() for p in parts[:-1]):
-        return False
-    if any(p[0].isupper() for p in domain.split('.')):
-        return False
-    tld = parts[-1]
-    return tld in VALID_TLDS
+def extract_intel(text):
+    ips = list(set(ip for ip in re.findall(IP_REGEX, text) if is_public_ip(ip)))
+    domains = list(set(re.findall(DOMAIN_REGEX, text)))
+    return {"ips": ips, "domains": domains}
 
-def resolve_domain(domain):
-    try:
-        return socket.gethostbyname(domain)
-    except:
-        return None
+# === Main analysis ===
+def detect_shellcode(text, filename):
+    hits = []
+    base64_payloads = re.findall(BASE64_REGEX, text)
+    heuristic_hits = []
+    memory_hooks = []
+    decoded_b64 = []
 
-def query_ipapi(ip):
-    try:
-        r = requests.get(f"http://ip-api.com/json/{ip}", timeout=5)
-        if r.ok:
-            data = r.json()
-            return {
-                "country": data.get("country", "N/A"),
-                "region": data.get("regionName", "N/A"),
-                "city": data.get("city", "N/A"),
-                "asn": data.get("as", "N/A"),
-                "isp": data.get("isp", "N/A"),
-                "org": data.get("org", "N/A")
-            }
-    except Exception as e:
-        return {"error": str(e)}
-    return {"error": "Lookup failed"}
+    if re.search(HEX_SHELLCODE_REGEX, text):
+        hits.append("hex_shellcode (\\x format)")
+    if re.search(RAW_HEX_BLOB_REGEX, text):
+        hits.append("raw_hex_blob")
+    if any(asm in text.lower() for asm in ASM_KEYWORDS):
+        hits.append("assembly keywords")
 
-def query_apivoid(ip):
-    if not APIKEY:
-        return {"threat_score": "N/A", "error": "No APIVOID_API_KEY"}
-    try:
-        url = f"https://endpoint.apivoid.com/iprep/v1/pay-as-you-go/?key={APIKEY}&ip={ip}"
-        r = requests.get(url)
-        if r.ok:
-            data = r.json().get("data", {}).get("report", {})
-            score = data.get("risk_analysis", {}).get("risk_score", {}).get("result", 0)
-            category = data.get("risk_analysis", {}).get("risk_score_result", {}).get("category", "N/A")
-            return {"threat_score": score, "threat_category": category}
-        else:
-            return {"threat_score": "N/A", "error": f"{r.status_code} - {r.text}"}
-    except Exception as e:
-        return {"threat_score": "N/A", "error": str(e)}
+    # Heuristics
+    for tag, patterns in HEURISTIC_PATTERNS.items():
+        for pat in patterns:
+            if re.search(pat, text):
+                heuristic_hits.append(tag)
+                break
 
-def colorize_score(score):
-    if isinstance(score, int):
-        if score == 0:
-            return Fore.GREEN
-        elif score == 100:
-            return Fore.RED
-        else:
-            return Fore.YELLOW
-    return Fore.WHITE
+    for pat in MEMORY_HOOK_PATTERNS:
+        if re.search(pat, text):
+            memory_hooks.append(pat.strip("(?i)"))
 
-# === MAIN PROCESS ===
-all_ips = set()
-all_domains = set()
+    # Base64 decode and analyze
+    for b64 in base64_payloads:
+        try:
+            decoded = base64.b64decode(b64).decode('utf-8', errors='ignore')
+            if decoded.strip():
+                hashval = hashlib.sha256(decoded.encode()).hexdigest()
+                outpath = DECODED_DIR / f"{filename}_{hashval[:8]}.txt"
+                with open(outpath, "w", encoding="utf-8") as f:
+                    f.write(decoded)
+                print(f"{Fore.CYAN}[DECODED BASE64] saved to {outpath}{Style.RESET_ALL}")
+                decoded_b64.append({
+                    "sha256": hashval,
+                    "sample": decoded[:100],
+                    "file": str(outpath),
+                    "intel": extract_intel(decoded)
+                })
+                for pat in MEMORY_HOOK_PATTERNS:
+                    if re.search(pat, decoded):
+                        memory_hooks.append(pat.strip("(?i)"))
+        except Exception:
+            continue
+
+    if hits or decoded_b64 or heuristic_hits or memory_hooks:
+        print(f"{Fore.MAGENTA}[SHELLCODE] Detected in {filename}: {', '.join(hits + heuristic_hits)}{Style.RESET_ALL}")
+        if memory_hooks:
+            print(f"{Fore.LIGHTRED_EX}[MEMORY HOOKS] {filename}: {', '.join(set(memory_hooks))}{Style.RESET_ALL}")
+        return {
+            "file": filename,
+            "shellcode_detected": hits,
+            "base64_decoded": decoded_b64,
+            "heuristic_flags": heuristic_hits,
+            "memory_api_hooks": list(set(memory_hooks))
+        }
+    return None
+
+# === Run ===
 results = []
-
-# Extract from all .txt files in current folder
 for file in CURRENT_DIR.glob("*.txt"):
     with open(file, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
-        all_ips.update(re.findall(IP_REGEX, content))
-        all_domains.update(re.findall(DOMAIN_REGEX, content))
+        entry = detect_shellcode(content, file.name)
+        if entry:
+            results.append(entry)
 
-public_ips = {ip for ip in all_ips if is_public_ip(ip)}
-valid_domains = {d for d in all_domains if not re.match(IP_REGEX, d) and is_valid_domain(d)}
-
-print(f" Found {len(public_ips)} unique public IPs")
-print(f" Found {len(valid_domains)} valid domains")
-
-# === Process IPs ===
-for ip in sorted(public_ips):
-    geo = query_ipapi(ip)
-    av = query_apivoid(ip)
-    score = av.get("threat_score", 0)
-    color = colorize_score(score)
-    print(f"{color}[IP] {ip} → Score: {score}, Country: {geo.get('country')} / ASN: {geo.get('asn')}{Style.RESET_ALL}")
-    results.append({
-        "ip": ip,
-        "source": "direct",
-        **geo,
-        **av
-    })
-    sleep(SLEEP_TIME)
-
-# === Process Domains ===
-for domain in sorted(valid_domains):
-    resolved_ip = resolve_domain(domain)
-    if resolved_ip and is_public_ip(resolved_ip):
-        geo = query_ipapi(resolved_ip)
-        av = query_apivoid(resolved_ip)
-        score = av.get("threat_score", 0)
-        color = colorize_score(score)
-        print(f"{color}[DOMAIN] {domain} → {resolved_ip} → Score: {score}, Country: {geo.get('country')} / ASN: {geo.get('asn')}{Style.RESET_ALL}")
-        results.append({
-            "domain": domain,
-            "ip": resolved_ip,
-            "source": "domain",
-            **geo,
-            **av
-        })
-        sleep(SLEEP_TIME)
-    else:
-        print(f"{Fore.LIGHTBLACK_EX}[DOMAIN] {domain} → Unresolved or private IP{Style.RESET_ALL}")
-        results.append({
-            "domain": domain,
-            "error": "Could not resolve or not public IP"
-        })
-
-# === Save Output ===
 with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
     json.dump(results, f, indent=2)
 
-print(f"\n Results saved to {OUTPUT_FILE}")
+print(f"\n✅ Analysis complete. Results saved to {OUTPUT_FILE}")
