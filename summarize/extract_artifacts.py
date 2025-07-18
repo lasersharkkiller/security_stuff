@@ -1,5 +1,3 @@
-# Save as extract_artifacts.py
-
 import os, re, json, base64, hashlib, ipaddress, requests
 from pathlib import Path
 
