@@ -1,4 +1,4 @@
-import os, re, json, base64, hashlib, ipaddress, requests
+import os, re, json, base64, hashlib, ipaddress, requests, subprocess
 from pathlib import Path
 
 try:
@@ -10,7 +10,9 @@ except ImportError:
     Fore = Style = Dummy()
 
 DECODED_DIR = Path("./decoded")
+SCRIPTS_DIR = Path("./decoded_scripts")
 DECODED_DIR.mkdir(exist_ok=True)
+SCRIPTS_DIR.mkdir(exist_ok=True)
 OUTPUT_FILE = "decoded_analysis_results.json"
 
 SUSPICIOUS_ASNS = [
@@ -24,7 +26,15 @@ DOMAIN_REGEX = r'\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b'
 HEX_SHELLCODE_REGEX = r'(?:\\x[0-9a-fA-F]{2}){4,}'
 RAW_HEX_BLOB_REGEX = r'\b(?:[0-9a-fA-F]{8,})\b'
 BASE64_REGEX = r'(?<![\w+/=])(?:[A-Za-z0-9+/]{20,}={0,2})(?![\w+/=])'
+
 ASM_KEYWORDS = ['mov', 'jmp', 'call', 'xor', 'push', 'pop', 'ret', 'int', 'syscall']
+SCRIPT_SIGS = {
+    "powershell": r"(?i)powershell|Invoke-|EncodedCommand",
+    "js": r"(?i)\bfunction\b|\beval\b|XMLHttpRequest|document\.",
+    "batch": r"(?i)@echo off|cmd\.exe|start\b",
+    "vbs": r"(?i)CreateObject|\.Run|WScript\.Shell",
+    "vba": r"(?i)Sub AutoOpen|Document_Open|Shell"
+}
 
 HEURISTIC_PATTERNS = {
     "password_grabber": [r'(?i)grab(pass(word)?|cred|token)', r'(?i)chrome.*(login|password)', r'(?i)get(stored)?(password|credentials)'],
@@ -55,9 +65,43 @@ def extract_intel(text):
     domains = re.findall(DOMAIN_REGEX, text)
     return {"ips": list(set(ips)), "domains": list(set(domains))}
 
+def analyze_binary(filepath):
+    result = {"lief": None, "capa": None, "floss": None}
+    try:
+        import lief
+        binobj = lief.parse(str(filepath))
+        result["lief"] = {
+            "entrypoint": hex(binobj.entrypoint),
+            "sections": [s.name for s in binobj.sections]
+        }
+    except: result["lief"] = "failed"
+
+    try:
+        capa_output = subprocess.check_output(["capa", str(filepath)], stderr=subprocess.DEVNULL, timeout=15, text=True)
+        result["capa"] = capa_output[:500]
+    except: result["capa"] = "failed"
+
+    try:
+        floss_output = subprocess.check_output(["floss", str(filepath)], stderr=subprocess.DEVNULL, timeout=10, text=True)
+        result["floss"] = floss_output[:300]
+    except: result["floss"] = "failed"
+
+    return result
+
+def detect_script(text, filename):
+    found = []
+    for tag, sig in SCRIPT_SIGS.items():
+        if re.search(sig, text):
+            h = hashlib.sha256(text.encode()).hexdigest()
+            fpath = SCRIPTS_DIR / f"{filename}_{tag}_{h[:8]}.txt"
+            fpath.write_text(text, encoding="utf-8")
+            print(f"{Fore.YELLOW}[SCRIPT] {tag.upper()} in {filename} → {fpath}")
+            found.append({"type": tag, "file": str(fpath)})
+    return found
+
 def detect_shellcode(text, filename):
     results, memory_hooks, decoded_b64 = [], [], []
-    heuristics = []
+    heuristics, scripts = [], []
 
     if re.search(HEX_SHELLCODE_REGEX, text): results.append("hex_shellcode")
     if re.search(RAW_HEX_BLOB_REGEX, text): results.append("raw_hex_blob")
@@ -76,17 +120,22 @@ def detect_shellcode(text, filename):
                 h = hashlib.sha256(decoded.encode()).hexdigest()
                 fpath = DECODED_DIR / f"{filename}_{h[:8]}.txt"
                 fpath.write_text(decoded, encoding="utf-8")
-                print(f"{Fore.CYAN}[DECODED BASE64] {fpath}{Style.RESET_ALL}")
+                print(f"{Fore.CYAN}[DECODED BASE64] {fpath}")
                 intel = extract_intel(decoded)
-                decoded_b64.append({"sha256": h, "file": str(fpath), "sample": decoded[:100], "intel": intel})
+                script_hits = detect_script(decoded, filename)
+                bin_analysis = analyze_binary(fpath) if b'\x' in decoded.encode() else None
+                decoded_b64.append({
+                    "sha256": h, "sample": decoded[:100], "file": str(fpath),
+                    "intel": intel, "scripts": script_hits, "binary_analysis": bin_analysis
+                })
                 for pat in MEMORY_HOOK_PATTERNS:
                     if re.search(pat, decoded): memory_hooks.append(pat.strip("(?i)"))
         except: continue
 
     if results or heuristics or memory_hooks or decoded_b64:
-        print(f"{Fore.MAGENTA}[SHELLCODE] {filename}: {', '.join(results + heuristics)}{Style.RESET_ALL}")
+        print(f"{Fore.MAGENTA}[SHELLCODE] {filename}: {', '.join(results + heuristics)}")
         if memory_hooks:
-            print(f"{Fore.RED}[MEMORY HOOKS] {filename}: {', '.join(set(memory_hooks))}{Style.RESET_ALL}")
+            print(f"{Fore.RED}[MEMORY HOOKS] {filename}: {', '.join(set(memory_hooks))}")
         return {
             "file": filename,
             "shellcode_detected": results,
