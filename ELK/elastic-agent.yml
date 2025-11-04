@@ -1,0 +1,29 @@
+agent:
+  id: sandbox-agent
+  name: sandbox-win
+  monitoring:
+    enabled: true
+    logs: true
+    metrics: true
+
+inputs:
+  - type: winlog
+    enabled: true
+    streams:
+      - name: Application
+      - name: System
+      - name: Security
+      - name: Microsoft-Windows-PowerShell/Operational
+
+  - type: system/metrics
+    enabled: true
+    streams:
+      - metricset: cpu
+      - metricset: memory
+      - metricset: network
+      - metricset: process
+    period: 10s
+
+outputs:
+  logstash:
+    hosts: ["1.1.1.1:5044"]
