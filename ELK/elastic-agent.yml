@@ -1,29 +1,55 @@
 agent:
-  id: sandbox-agent
   name: sandbox-win
   monitoring:
     enabled: true
     logs: true
     metrics: true
 
+outputs:
+  default:
+    type: logstash
+    hosts: ["<SIEM_VM_IP>:5044"]   # e.g. 172.16.57.109
+
 inputs:
-  - type: winlog
-    enabled: true
+  - id: win-events
+    type: winlog
+    use_output: default
+    data_stream:
+      namespace: default
     streams:
       - name: Application
+        data_stream:
+          type: logs
+          dataset: windows.application
       - name: System
+        data_stream:
+          type: logs
+          dataset: windows.system
       - name: Security
-      - name: Microsoft-Windows-PowerShell/Operational
+        data_stream:
+          type: logs
+          dataset: windows.security
 
-  - type: system/metrics
-    enabled: true
+  - id: win-metrics
+    type: system/metrics
+    use_output: default
+    data_stream:
+      namespace: default
     streams:
       - metricset: cpu
+        data_stream:
+          type: metrics
+          dataset: system.cpu
       - metricset: memory
+        data_stream:
+          type: metrics
+          dataset: system.memory
       - metricset: network
+        data_stream:
+          type: metrics
+          dataset: system.network
       - metricset: process
+        data_stream:
+          type: metrics
+          dataset: system.process
     period: 10s
-
-outputs:
-  logstash:
-    hosts: ["1.1.1.1:5044"]
