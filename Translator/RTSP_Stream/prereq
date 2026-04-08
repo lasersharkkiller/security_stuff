@@ -1,2 +1,0 @@
-pip install SpeechRecognition googletrans==4.0.0-rc1 pydub
-sudo apt install ffmpeg libavcodec-extra
